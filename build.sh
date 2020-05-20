@@ -17,10 +17,6 @@ cat << EOF > src/module-info.java
 module codegen {
   exports org.objectweb.asm;
   exports org.objectweb.asm.commons;
-  exports org.objectweb.asm.util;
-  exports org.objectweb.asm.tree;
-  exports org.objectweb.asm.tree.analysis;
-  exports org.objectweb.asm.signature;
 }
 EOF
 }
@@ -30,9 +26,6 @@ if [ ! -d src ]; then
   module_info
   ow2 asm 8.0.1
   ow2 asm-commons 8.0.1
-  ow2 asm-util 8.0.1
-  ow2 asm-tree 8.0.1
-  ow2 asm-analysis 8.0.1
 fi
 
 rm -fr bin
@@ -40,9 +33,7 @@ mkdir -p bin
 
 /opt/jdk15/bin/javac \
   -d bin -sourcepath src \
-  src/org/objectweb/asm/commons/InstructionAdapter.java \
-  src/org/objectweb/asm/util/CheckClassAdapter.java \
-  src/org/objectweb/asm/util/Printer.java
+  src/org/objectweb/asm/commons/InstructionAdapter.java
 
 rm -f codegen-asm-8.0.1.jar
 
