@@ -111,7 +111,7 @@ class Disasm {
              var def = a.u4();
              var low = a.u4();
              var high = a.u4();
-             var v = new Object[4 + ((high - low) + 1)];
+             var v = new Integer[4 + ((high - low) + 1)];
              v[0] = pad; v[1] = def; v[2] = low; v[3] = high;
              for (int i = 4, m = v.length; i < m; i++) v[i] = a.u4();
              yield v;
@@ -122,7 +122,7 @@ class Disasm {
              a.p += pad; // skip padding
              var def = a.u4();
              var npairs = a.u4();
-             var v = new Object[3 + (2 * npairs)];
+             var v = new Integer[3 + (2 * npairs)];
              v[0] = pad; v[1] = def; v[2] = npairs;
              for (int i = 3, m = v.length; i < m;) { v[i++] = a.u4(); v[i++] = a.u4(); }
              yield v;

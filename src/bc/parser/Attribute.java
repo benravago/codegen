@@ -84,14 +84,13 @@ class Attribute {
   }
 
   /**
-   *  InnerClasses_attribute {
-   *      u2 number_of_classes;
-   *      {   u2 inner_class_info_index;
-   *          u2 outer_class_info_index;
-   *          u2 inner_name_index;
-   *          u2 inner_class_access_flags;
-   *      } classes[number_of_classes];
-   *  }
+   *  InnerClasses_attribute :
+   *    u2 number_of_classes
+   *    { u2 inner_class_info_index
+   *      u2 outer_class_info_index
+   *      u2 inner_name_index
+   *      u2 inner_class_access_flags
+   *    } classes[number_of_classes]
    */
   InnerClasses InnerClasses_attribute(Span span) {
     return new InnerClasses(ATTRIBUTE_InnerClasses,
@@ -117,7 +116,7 @@ class Attribute {
   }
 
   /**
-   *  Signature_attribute {
+   *  Signature_attribute :
    *    u2 signature_index
    */
   Signature Signature_attribute(Span a) {
