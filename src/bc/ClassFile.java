@@ -1,6 +1,6 @@
 package bc;
 
-public interface ClassFile { // is also Attributed
+public interface ClassFile {
 
   int                     magic();
   short                   minor();

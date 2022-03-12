@@ -13,9 +13,6 @@ public class Instruction {
     lvResolver = localVariableResolver;
   }
 
-  final IntFunction<CharSequence> cpResolver;
-  final IntFunction<CharSequence> lvResolver;
-
   StringBuilder s = new StringBuilder();
   Formatter f = new Formatter(s);
 
@@ -243,7 +240,7 @@ public class Instruction {
   void i_1c_1d   (Opcode o, String i) { f.format( "%04x  %s  %s, %d"    , o.pc(), i, c1(o,0), u1(o,1)    ); } //  (1,1)  cp.index, const
   void i_2c_1d   (Opcode o, String i) { f.format( "%04x  %s  %s, %d"    , o.pc(), i, c2(o,0), u1(o,1)    ); } //  (2,1)  cp.index, const
   void i_2c_1d_0 (Opcode o, String i) { f.format( "%04x  %s  %s, %d, 0" , o.pc(), i, c2(o,0), u1(o,1)    ); } //  (2,1,0)  cp.index, count, 0
-  void i_2c_0_0  (Opcode o, String i) { f.format( "%04x  %s, 0, 0"      , o.pc(), i, c2(o,0)             ); } //  (2,0,0)  cp.index, 0, 0
+  void i_2c_0_0  (Opcode o, String i) { f.format( "%04x  %s  %s, 0, 0"  , o.pc(), i, c2(o,0)             ); } //  (2,0,0)  cp.index, 0, 0
 
   void i_p_4d_4d_4d_v(Opcode o, String ins) {
     var v = (Integer[])o.args();
@@ -289,7 +286,7 @@ public class Instruction {
     };
   }
 
-  static Byte  u1(Opcode o, int i) { return (Byte)((Object[])o.args())[i]; }
+  static Byte  u1(Opcode o, int i) { return (Byte) ((Object[])o.args())[i]; }
   static Short u2(Opcode o, int i) { return (Short)((Object[])o.args())[i]; }
 
   CharSequence c1(Opcode o, int i) { return cp(u1(o,i)); }
@@ -297,5 +294,8 @@ public class Instruction {
 
   CharSequence cp(int i) { return cpResolver.apply(i); }
   CharSequence lv(int i) { return lvResolver.apply(i); }
+
+  final IntFunction<CharSequence> cpResolver;
+  final IntFunction<CharSequence> lvResolver;
 
 }

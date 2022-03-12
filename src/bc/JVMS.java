@@ -1,6 +1,39 @@
 package bc;
 
-public interface JVMS {       // jvms-4.html#jvms-4.4
+public interface JVMS {
+
+  // Table 4.1-B. Class access and property modifiers
+  // Table 4.5-A. Field access and property flags
+  // Table 4.6-A. Method access and property flags
+
+  enum Access {
+
+    PUBLIC       ( 0x0001 ),  // c f m
+    PRIVATE      ( 0x0002 ),  //   f m
+    PROTECTED    ( 0x0004 ),  //   f m
+    STATIC       ( 0x0008 ),  //   f m
+    FINAL        ( 0x0010 ),  // c f m
+    SUPER        ( 0x0020 ),  // c
+    SYNCHRONIZED ( 0x0020 ),  //     m
+    VOLATILE     ( 0x0040 ),  //   f
+    BRIDGE       ( 0x0040 ),  //     m
+    TRANSIENT    ( 0x0080 ),  //   f
+    VARARGS      ( 0x0080 ),  //     m
+    NATIVE       ( 0x0100 ),  //     m
+    INTERFACE    ( 0x0200 ),  // c
+    ABSTRACT     ( 0x0400 ),  // c   m
+    STRICT       ( 0x0800 ),  //     m
+    SYNTHETIC    ( 0x1000 ),  // c f m
+    ANNOTATION   ( 0x2000 ),  // c
+    ENUM         ( 0x4000 ),  // c f
+    MODULE       ( 0x8000 );  // c
+  
+    Access(int bit) { b = (short)bit; }
+  
+    final short b;
+  
+    public boolean in(short bits) { return (bits & b) != 0; }
+  }
 
   // 4.4. The Constant Pool           // Table 4.4 - Constant pool tags
                                       //  section version java-se loadable
@@ -35,6 +68,7 @@ public interface JVMS {       // jvms-4.html#jvms-4.4
     REF_invokeSpecial    = 7,
     REF_newInvokeSpecial = 8,
     REF_invokeInterface  = 9;
+
 
   // Table 4.7 Predefined class file attributes
                                                          // section version java-se  -location-

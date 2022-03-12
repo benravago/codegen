@@ -214,7 +214,7 @@ class Attribute {
         );
       })
     );
-  } // TODO: review this, seems iffy (nested fixed-item-length arrays)
+  }
 
   /**
    *  MethodParameters_attribute :
@@ -225,8 +225,7 @@ class Attribute {
    */
   MethodParameters MethodParameters_attribute(Span span) {
     return new MethodParameters(ATTRIBUTE_MethodParameters,
-      Iter.of( span.u2(), span, a ->
-        new MethodParameter( cp.info(a.u2()), a.u2() )
+      Iter.of( span.u2(), span, a -> new MethodParameter( cp.info(a.u2()), a.u2() )
     ));
   }
 
@@ -362,32 +361,33 @@ class Attribute {
     return bc.span(start,a.p);
   }
 
+  Iterable<CharSequence> uses(int count, Span span) {
+    return Iter.of(count, span, a -> cp.info(a.u2()) );
+  }
+  
   Iterable<ModuleRequires> requires(int count, Span span) {
-    return Iter.of(count, span, a -> new ModuleRequires( cp.info(a.u2()), a.u2(), cp.info(a.u2()) ));
+    return Iter.of(count, span, r ->
+      new ModuleRequires( cp.info(r.u2()), r.u2(), cp.info(r.u2()) ));
   }
 
   Iterable<ModuleExports> exports(int count, Span span) {
     return Iter.of(count, span, e ->
       new ModuleExports( cp.info(e.u2()), e.u2(),
-        Iter.of(e.u2(), e, a -> cp.info(a.u2()) )
+        Iter.of(e.u2(), e.dup(), a -> cp.info(a.u2()) )
     ));
   }
 
-  Iterable<ModuleOpens> opens(int count, Span span) {  // TODO: add count
+  Iterable<ModuleOpens> opens(int count, Span span) {
     return Iter.of(count, span, o ->
       new ModuleOpens( cp.info(o.u2()), o.u2(),
-        Iter.of( o.u2(), o, a -> cp.info(a.u2()) )
+        Iter.of( o.u2(), o.dup(), a -> cp.info(a.u2()) )
     ));
-  }
-
-  Iterable<CharSequence> uses(int count, Span span) {
-    return Iter.of(count, span, a -> cp.info(a.u2()) );
   }
 
   Iterable<ModuleProvides> provides(int count, Span span) {
     return Iter.of(count, span, p ->
       new ModuleProvides( cp.info(p.u2()),
-        Iter.of( p.u2(), p, a -> cp.info(a.u2()) )
+        Iter.of( p.u2(), p.dup(), a -> cp.info(a.u2()) )
     ));
   }
 
@@ -441,9 +441,9 @@ class Attribute {
     return new Code(ATTRIBUTE_Code,
       max_stack,
       max_locals,
-      codes( code_span.dup() ),
+      codes( code_span ),
       exception_table( exception_table_length, exception_table_span ),
-      attributes( attributes_count, attributes_span.dup() )
+      attributes( attributes_count, attributes_span )
     );
   }
 
@@ -527,7 +527,6 @@ class Attribute {
         } else if (frame_type >= 252) { // APPEND = 252-254
           var offset_delta = a.u2();
           var number_of_locals = (short)( frame_type - 251);
-          var locals_start = a.p;
           var locals_span = verification_type_span(a, number_of_locals);
           return new StackMapFrame.Append(type, offset_delta,
             verification_types( number_of_locals, locals_span )
@@ -785,8 +784,8 @@ class Attribute {
    *  } parameter_annotations[num_parameters]
    */
   Iterable<ParameterAnnotation> parameter_annotations(Span span) {
-    return Iter.of( span.u2(), span, p -> new ParameterAnnotation(annotations(p)) );
-  } // TODO: review this, seems iffy (nested variable-item-length arrays)
+    return Iter.of( span.u2(), span.dup(), p -> new ParameterAnnotation(annotations(p)) );
+  }
 
   /**
    *  u2 num_annotations
