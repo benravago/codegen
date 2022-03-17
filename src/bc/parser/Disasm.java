@@ -4,6 +4,8 @@ import bc.parser.Bytecode.Span;
 import bc.ClassFile.Opcode;
 import static bc.JVMS.*;
 
+// TODO: mark 'index' as 'cp.index' or 'lv.index'
+
 class Disasm {
 
   static Opcode decode(Span a, int base) {

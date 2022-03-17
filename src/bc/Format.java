@@ -1,8 +1,8 @@
-package bc.parser;
+package bc;
 
-final class Utf8 {
+public interface Format {
 
-  static CharSequence decode(byte[] b, int o, int len) {
+  static CharSequence utf8(byte[] b, int o, int len) {
     len += o;
     int u, v, w, x, y;
     var r = new StringBuilder();
@@ -49,5 +49,33 @@ final class Utf8 {
     }
     return r;
   }
+
+  static byte[] utf8(CharSequence s) {
+    return null; // TODO:
+  }
+
+  static int i32(byte[] b, int p) {
+    return ( ((b[p] & 0x0ff) << 24) | ((b[p+1] & 0x0ff) << 16) | ((b[p+2] & 0x0ff) <<  8) | (b[p+3] & 0x0ff) );
+  }
+  static byte[] i32(int i) {
+    return new byte[]{ (byte)(i >>> 24), (byte)(i >>> 16), (byte)(i >>> 8), (byte)(i) };
+  }
+
+  static long i64(byte[] b, int p) {
+    return ( ((b[p] & 0x0ffL) << 56) | ((b[p+1] & 0x0ffL) << 48) | ((b[p+2] & 0x0ffL) << 40) | ((b[p+3] & 0x0ffL) << 32)
+           | ((b[p+4] & 0x0ffL) << 24) | ((b[p+5] & 0x0ffL) << 16) | ((b[p+6] & 0x0ffL) <<  8) | (b[p+7] & 0x0ffL) ) ;
+  }
+  static byte[] i64(long l) {
+    return new byte[]{ (byte)(l >>> 56), (byte)(l >>> 48), (byte)(l >>> 40), (byte)(l >>> 32),
+                       (byte)(l >>> 24), (byte)(l >>> 16), (byte)(l >>> 8), (byte)(l) };
+  }
+
+  // IEEE-754 format
+
+  static float fp32(byte[] b, int p) { return Float.intBitsToFloat(i32(b,p)); }
+  static byte[] fp32(float f) { return i32(Float.floatToIntBits(f)); }
+
+  static double fp64(byte[] b, int p) { return Double.longBitsToDouble(i64(b,p)); }
+  static byte[] fp64(double d, byte[] b, int p) { return i64(Double.doubleToLongBits(d)); }
 
 }

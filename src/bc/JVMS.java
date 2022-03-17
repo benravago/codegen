@@ -27,11 +27,11 @@ public interface JVMS {
     ANNOTATION   ( 0x2000 ),  // c
     ENUM         ( 0x4000 ),  // c f
     MODULE       ( 0x8000 );  // c
-  
+
     Access(int bit) { b = (short)bit; }
-  
+
     final short b;
-  
+
     public boolean in(short bits) { return (bits & b) != 0; }
   }
 

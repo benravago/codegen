@@ -6,48 +6,13 @@ import static bc.JVMS.*;
 
 class Constant {
 
-  final Bytecode bc;
-  final Object[] cache;
 
-  Constant(Bytecode a) {
-    bc = a;
-    cache = new Object[bc.constant_pool.length];
-  }
-
-  @SuppressWarnings("unchecked")
-  <T> T info(int n) {
-    assert n > 0 && n < cache.length;
-    if (cache[n] == null) {
-      cache[n] = cp_info(bc.span( bc.constant_pool[n-1], bc.constant_pool[n] ));
-    }
-    return (T)cache[n];
-  }
-
-  Object cp_info(Span a) {
-    var tag = a.u1();
-    return switch(tag) {
-      case CONSTANT_Utf8 -> Utf8_info(a);
-      case CONSTANT_Integer -> Integer_info(a);
-      case CONSTANT_Float -> Float_info(a);
-      case CONSTANT_Long -> Long_info(a);
-      case CONSTANT_Double -> Double_info(a);
-      case CONSTANT_Class -> Class_info(a);
-      case CONSTANT_String -> String_info(a);
-      case CONSTANT_Fieldref -> Fieldref_info(a);
-      case CONSTANT_Methodref -> Methodref_info(a);
-      case CONSTANT_InterfaceMethodref -> InterfaceMethodref_info(a);
-      case CONSTANT_NameAndType -> NameAndType_info(a);
-      case CONSTANT_MethodHandle -> MethodHandle_info(a);
-      case CONSTANT_MethodType -> MethodType_info(a);
-      case CONSTANT_Dynamic -> Dynamic_info(a);
-      case CONSTANT_InvokeDynamic -> InvokeDynamic_info(a);
-      case CONSTANT_Module -> Module_info(a);
-      case CONSTANT_Package -> Package_info(a);
-      default -> null;
-    };
-  }
-
-  static int[] pool_index(Span a, int n) {
+  /**
+   * returns index of 'constant_pool' section
+   * where: i[0] is start of 'constant_pool'
+   *        i[n] is end of 'constant_pool' item #n
+   */
+  static int[] index(Span a, int n) {
     var z = new int[n];
     z[0] = a.p;
     for (var i = 1; i < n; i++) {
@@ -80,15 +45,39 @@ class Constant {
     return z;
   }
 
+  static CpInfo info(Span a, short i) {
+    var tag = a.u1();
+    return switch(tag) {
+      case CONSTANT_Utf8 -> utf8_info(a,i);
+      case CONSTANT_Integer -> integer_info(a,i);
+      case CONSTANT_Float -> float_info(a,i);
+      case CONSTANT_Long -> long_info(a,i);
+      case CONSTANT_Double -> double_info(a,i);
+      case CONSTANT_Class -> class_info(a,i);
+      case CONSTANT_String -> string_info(a,i);
+      case CONSTANT_Fieldref -> fieldref_info(a,i);
+      case CONSTANT_Methodref -> methodref_info(a,i);
+      case CONSTANT_InterfaceMethodref -> interface_methodref_info(a,i);
+      case CONSTANT_NameAndType -> name_and_type_info(a,i);
+      case CONSTANT_MethodHandle -> methodhandle_info(a,i);
+      case CONSTANT_MethodType -> methodtype_info(a,i);
+      case CONSTANT_Dynamic -> dynamic_info(a,i);
+      case CONSTANT_InvokeDynamic -> invokedynamic_info(a,i);
+      case CONSTANT_Module -> module_info(a,i);
+      case CONSTANT_Package -> package_info(a,i);
+      default -> null;
+    };
+  }
+
   /**
    *  CONSTANT_Utf8_info :
-   *   u1 tag
-   *   u2 length
-   *   u1 bytes[length]
+   *    u1 tag
+   *    u2 length
+   *    u1 bytes[length]
    */
-  CharSequence Utf8_info(Span a) {
+  static Utf8Ref utf8_info(Span a, short i) {
     var len = a.u2();
-    return Utf8.decode(bc.b, a.p, len);
+    return new Utf8Ref(CONSTANT_Utf8, i, (short)a.p, len );
   }
 
   /**
@@ -96,8 +85,8 @@ class Constant {
    *    u1 tag
    *    u4 bytes
    */
-  Integer Integer_info(Span a) {
-    return a.u4();
+  static IntegerRef integer_info(Span a, short i) {
+    return new IntegerRef(CONSTANT_Integer, i, (short)a.p );
   }
 
   /**
@@ -105,8 +94,8 @@ class Constant {
    *    u1 tag
    *    u4 bytes
    */
-  Float Float_info(Span a) {
-    return Float.intBitsToFloat(a.u4()); // IEEE-754 format
+  static FloatRef float_info(Span a, short i) {
+    return new FloatRef(CONSTANT_Float, i, (short)a.p );
   }
 
   /**
@@ -115,8 +104,8 @@ class Constant {
    *    u4 high_bytes
    *    u4 low_bytes
    */
-  Long Long_info(Span a) {
-    return u8(bc.b,a.p);
+  static LongRef long_info(Span a, short i) {
+    return new LongRef(CONSTANT_Long, i, (short)a.p );
   }
   /**
    *  CONSTANT_Double_info :
@@ -124,13 +113,8 @@ class Constant {
    *    u4 high_bytes
    *    u4 low_bytes
    */
-  Double Double_info(Span a) {
-    return Double.longBitsToDouble(u8(bc.b,a.p)); // IEEE-754 format
-  }
-
-  static long u8(byte[] b, int p) {
-    return ( ((b[p++] & 0x0ffL) << 56) | ((b[p++] & 0x0ffL) << 48) | ((b[p++] & 0x0ffL) << 40) | ((b[p++] & 0x0ffL) << 32)
-           | ((b[p++] & 0x0ffL) << 24) | ((b[p++] & 0x0ffL) << 16) | ((b[p++] & 0x0ffL) <<  8) | ( b[p++] & 0x0ffL) ) ;
+  static DoubleRef double_info(Span a, short i) {
+    return new DoubleRef(CONSTANT_Double, i, (short)a.p );
   }
 
   /**
@@ -138,8 +122,8 @@ class Constant {
    *    u1 tag
    *    u2 name_index
    */
-  CharSequence Class_info(Span a) {
-    return info(a.u2());
+  static ClassRef class_info(Span a, short i) {
+    return new ClassRef(CONSTANT_Class, i, a.u2() );
   }
 
   /**
@@ -147,8 +131,8 @@ class Constant {
    *    u1 tag
    *    u2 string_index
    */
-  CharSequence String_info(Span a) {
-    return info(a.u2());
+  static StringRef string_info(Span a, short i) {
+    return new StringRef(CONSTANT_String, i, a.u2() );
   }
 
   /**
@@ -157,8 +141,8 @@ class Constant {
    *    u2 class_index
    *    u2 name_and_type_index
    */
-  Variable Fieldref_info(Span a) {
-    return new Variable( info(a.u2()), info(a.u2()) );
+  static FieldRef fieldref_info(Span a, short i) {
+    return new FieldRef(CONSTANT_Fieldref, i, a.u2(), a.u2() );
   }
 
   /**
@@ -167,8 +151,8 @@ class Constant {
    *    u2 class_index
    *    u2 name_and_type_index
    */
-  Variable Methodref_info(Span a) {
-    return new Variable( info(a.u2()), info(a.u2()) );
+  static MethodRef methodref_info(Span a, short i) {
+    return new MethodRef(CONSTANT_Methodref, i, a.u2(), a.u2() );
   }
 
   /**
@@ -177,8 +161,8 @@ class Constant {
    *    u2 class_index
    *    u2 name_and_type_index
    */
-  Variable InterfaceMethodref_info(Span a) {
-    return new Variable( info(a.u2()), info(a.u2()) );
+  static InterfaceMethodRef interface_methodref_info(Span a, short i) {
+    return new InterfaceMethodRef(CONSTANT_InterfaceMethodref, i, a.u2(), a.u2() );
   }
 
   /**
@@ -187,8 +171,8 @@ class Constant {
    *    u2 name_index
    *    u2 descriptor_index
    */
-  Accessible NameAndType_info(Span a) {
-    return new Accessible( info(a.u2()), info(a.u2()) );
+  static NameAndTypeRef name_and_type_info(Span a, short i) {
+    return new NameAndTypeRef(CONSTANT_NameAndType, i, a.u2(), a.u2() );
   }
 
   /**
@@ -197,8 +181,8 @@ class Constant {
    *    u1 reference_kind
    *    u2 reference_index
    */
-  Reference MethodHandle_info(Span a) {
-    return new Reference( a.u1(), info(a.u2()) );
+  static MethodHandleRef methodhandle_info(Span a, short i) {
+    return new MethodHandleRef(CONSTANT_MethodHandle, i, a.u1(), a.u2() );
   }
 
   /**
@@ -206,8 +190,8 @@ class Constant {
    *    u1 tag
    *    u2 descriptor_index
    */
-  CharSequence MethodType_info(Span a) {
-    return info(a.u2());
+  static MethodTypeRef methodtype_info(Span a, short i) {
+    return new MethodTypeRef(CONSTANT_MethodType, i, a.u2() );
   }
 
   /**
@@ -216,8 +200,8 @@ class Constant {
    *    u2 bootstrap_method_attr_index
    *    u2 name_and_type_index
    */
-  Dynamic Dynamic_info(Span a) {
-    return new Dynamic( a.u2(), info(a.u2()) );
+  static DynamicRef dynamic_info(Span a, short i) {
+    return new DynamicRef(CONSTANT_Dynamic, i, a.u2(), a.u2() );
   }
 
   /**
@@ -226,8 +210,8 @@ class Constant {
    *    u2 bootstrap_method_attr_index
    *    u2 name_and_type_index
    */
-  Dynamic InvokeDynamic_info(Span a) {
-    return new Dynamic( a.u2(), info(a.u2()) );
+  static InvokeDynamicRef invokedynamic_info(Span a, short i) {
+    return new InvokeDynamicRef(CONSTANT_InvokeDynamic, i, a.u2(), a.u2() );
   }
 
   /**
@@ -235,8 +219,8 @@ class Constant {
    *    u1 tag
    *    u2 name_index
    */
-  CharSequence Module_info(Span a) {
-    return info(a.u2());
+  static ModuleRef module_info(Span a, short i) {
+    return new ModuleRef(CONSTANT_Module, i, a.u2() );
   }
 
   /**
@@ -244,8 +228,8 @@ class Constant {
    *    u1 tag
    *    u2 name_index
    */
-  CharSequence Package_info(Span a) {
-    return info(a.u2());
+  static PackageRef package_info(Span a, short i) {
+    return new PackageRef(CONSTANT_Package, i, a.u2() );
   }
 
 }

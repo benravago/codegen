@@ -10,10 +10,41 @@ import static bc.JVMS.*;
 class Attribute {
 
   final Bytecode bc;
-  final Constant cp;
+  final String[] names;
 
-  Attribute(Bytecode x) {
-    bc = x; cp = bc.cp;
+  Attribute(Bytecode bc) {
+    this.bc = bc;
+    this.names = new String[bc.constant_pool_count];
+  }
+
+  /**
+   * returns 'attribute' index
+   * where: i[0] is start of 'attribute' section
+   *        i[n] is end of 'attribute' #n-1
+   */
+  static int[] index(Span a, int n) {
+    var z = new int[++n];
+    z[0] = a.p;
+    for (var i = 1; i < n; i++) {
+      a.p += 2;
+      a.p += a.u4() + 4; // tricky !!
+      z[i] = a.p;
+    }
+    return z;
+  }
+
+  CpInfo cp(Span a)  { return bc.cp_info(a.u2()); }
+
+  String name(short i) {
+    var c = bc.cp_info(i);
+    if (c instanceof Utf8Ref u) {
+      var n = names[u.index()];
+      if (n == null) {
+        n = names[u.index()] = bc.chars(u.offset(),u.length()).toString();
+      }
+      return n;
+    }
+    throw new IllegalArgumentException(""+c);
   }
 
   /**
@@ -26,8 +57,7 @@ class Attribute {
   AttributeInfo info(Span a) {
     var i = a.u2();
     a.p += 4; // skip length
-    var name = cp.info(i).toString();
-    return switch(name) { // on entry a.p is at info[]
+    return switch(name(i)) { // on case, a.p is at info[]
 
       case "ConstantValue" -> ConstantValue_attribute(a);
       case "Code" -> Code_attribute(a);
@@ -69,7 +99,7 @@ class Attribute {
    *    u2 constantvalue_index
    */
   ConstantValue ConstantValue_attribute(Span a) {
-    return new ConstantValue(ATTRIBUTE_ConstantValue, cp.info(a.u2()) );
+    return new ConstantValue(ATTRIBUTE_ConstantValue, cp(a) );
   }
 
   /**
@@ -79,7 +109,7 @@ class Attribute {
    */
   Exceptions Exceptions_attribute(Span span) {
     return new Exceptions(ATTRIBUTE_Exceptions,
-      Iter.of( span.u2(), span, a -> cp.info(a.u2()) )
+      Iter.of( span.u2(), span, a -> cp(a) )
     );
   }
 
@@ -95,7 +125,7 @@ class Attribute {
   InnerClasses InnerClasses_attribute(Span span) {
     return new InnerClasses(ATTRIBUTE_InnerClasses,
       Iter.of( span.u2(), span, a ->
-        new InnerClass( cp.info(a.u2()), cp.info(a.u2()), cp.info(a.u2()), cp.info(a.u2()) )
+        new InnerClass( cp(a), cp(a), cp(a), a.u2() )
     ));
   }
 
@@ -105,7 +135,7 @@ class Attribute {
    *    u2 method_index
    */
   EnclosingMethod EnclosingMethod_attribute(Span a) {
-    return new EnclosingMethod(ATTRIBUTE_EnclosingMethod, cp.info(a.u2()), cp.info(a.u2()) );
+    return new EnclosingMethod(ATTRIBUTE_EnclosingMethod, cp(a), cp(a) );
   }
 
   /**
@@ -120,7 +150,7 @@ class Attribute {
    *    u2 signature_index
    */
   Signature Signature_attribute(Span a) {
-    return new Signature(ATTRIBUTE_Signature, cp.info(a.u2()) );
+    return new Signature(ATTRIBUTE_Signature, cp(a) );
   }
 
   /**
@@ -128,7 +158,7 @@ class Attribute {
    *    u2 sourcefile_index
    */
   SourceFile SourceFile_attribute(Span a) {
-    return new SourceFile(ATTRIBUTE_SourceFile, cp.info(a.u2()) );
+    return new SourceFile(ATTRIBUTE_SourceFile, cp(a) );
   }
 
   /**
@@ -167,7 +197,7 @@ class Attribute {
   LocalVariableTable LocalVariableTable_attribute(Span span) {
     return new LocalVariableTable(ATTRIBUTE_LocalVariableTable,
       Iter.of( span.u2(), span, a ->
-        new LocalVariable( a.u2(), a.u2(), cp.info(a.u2()), cp.info(a.u2()), a.u2() )
+        new LocalVariable( a.u2(), a.u2(), cp(a), cp(a), a.u2() )
     ));
   }
 
@@ -184,7 +214,7 @@ class Attribute {
   LocalVariableTypeTable LocalVariableTypeTable_attribute(Span span) {
     return new LocalVariableTypeTable(ATTRIBUTE_LocalVariableTypeTable,
       Iter.of( span.u2(), span, a ->
-        new LocalVariableType( a.u2(), a.u2(), cp.info(a.u2()), cp.info(a.u2()), a.u2() )
+        new LocalVariableType( a.u2(), a.u2(), cp(a), cp(a), a.u2() )
     ));
   }
 
@@ -209,8 +239,8 @@ class Attribute {
         var bootstrap_method_ref = m.u2();
         var num_bootstrap_arguments = m.u2();
         return new BootstrapMethod(
-          cp.info(bootstrap_method_ref),
-          Iter.of( num_bootstrap_arguments, m.dup(), a -> cp.info(a.u2()) )
+          bc.cp_info(bootstrap_method_ref),
+          Iter.of( num_bootstrap_arguments, m.dup(), a -> cp(a) )
         );
       })
     );
@@ -225,7 +255,7 @@ class Attribute {
    */
   MethodParameters MethodParameters_attribute(Span span) {
     return new MethodParameters(ATTRIBUTE_MethodParameters,
-      Iter.of( span.u2(), span, a -> new MethodParameter( cp.info(a.u2()), a.u2() )
+      Iter.of( span.u2(), span, a -> new MethodParameter( cp(a), a.u2() )
     ));
   }
 
@@ -234,7 +264,7 @@ class Attribute {
    *    u2 host_class_index
    */
   NestHost NestHost_attribute(Span a) {
-    return new NestHost(ATTRIBUTE_NestHost, cp.info(a.u2()));
+    return new NestHost(ATTRIBUTE_NestHost, cp(a));
   }
 
   /**
@@ -244,7 +274,7 @@ class Attribute {
    */
   NestMembers NestMembers_attribute(Span span) {
     return new NestMembers(ATTRIBUTE_NestMembers,
-      Iter.of( span.u2(), span, a -> cp.info(a.u2()) )
+      Iter.of( span.u2(), span, a -> cp(a) )
     );
   }
 
@@ -255,20 +285,20 @@ class Attribute {
    */
   PermittedSubclasses PermittedSubclasses_attribute(Span span) {
     return new PermittedSubclasses(ATTRIBUTE_PermittedSubclasses,
-      Iter.of( span.u2(), span, a -> cp.info(a.u2()) )
+      Iter.of( span.u2(), span, a -> cp(a) )
     );
   }
 
   /**
    *  Record_attribute :
-   *    u2 components_count
-   *    record_component_info components[components_count]
-   *
-   *  record_component_info :
-   *    u2             name_index
-   *    u2             descriptor_index
-   *    u2             attributes_count
-   *    attribute_info attributes[attributes_count]
+    u2 components_count
+    record_component_info components[components_count]
+
+  record_component_info :
+    u2             name_index
+    u2             descriptor_index
+    u2             attributes_count
+    attribute_info attributes_index[attributes_count]
    */
   Record Record_attribute(Span span) {
     return new Record(ATTRIBUTE_Record,
@@ -277,16 +307,12 @@ class Attribute {
         var descriptor = a.u2();
         var attributes_count = a.u2();
         return new RecordComponent(
-          cp.info(name),
-          cp.info(descriptor),
+          bc.cp_info(name),
+          bc.cp_info(descriptor),
           attributes(attributes_count, a.dup())
         );
       })
     );
-  }
-
-  Iterable<AttributeInfo> attributes(int count, Span span) {
-    return Iter.of( count, span, this::info );
   }
 
   /**
@@ -334,9 +360,9 @@ class Attribute {
     var provides_count = a.u2();
     var provides_span = skip(a, provides_count, 2);
     return new Module(ATTRIBUTE_Module,
-      cp.info(name),
+      bc.cp_info(name),
       flags,
-      cp.info(version),
+      bc.cp_info(version),
       requires(requires_count, requires_span),
       exports(exports_count, exports_span),
       opens(opens_count, opens_span),
@@ -361,33 +387,33 @@ class Attribute {
     return bc.span(start,a.p);
   }
 
-  Iterable<CharSequence> uses(int count, Span span) {
-    return Iter.of(count, span, a -> cp.info(a.u2()) );
+  Iterable<CpInfo> uses(int count, Span span) {
+    return Iter.of(count, span, a -> cp(a) );
   }
-  
+
   Iterable<ModuleRequires> requires(int count, Span span) {
     return Iter.of(count, span, r ->
-      new ModuleRequires( cp.info(r.u2()), r.u2(), cp.info(r.u2()) ));
+      new ModuleRequires( cp(r), r.u2(), cp(r) ));
   }
 
   Iterable<ModuleExports> exports(int count, Span span) {
     return Iter.of(count, span, e ->
-      new ModuleExports( cp.info(e.u2()), e.u2(),
-        Iter.of(e.u2(), e.dup(), a -> cp.info(a.u2()) )
+      new ModuleExports( cp(e), e.u2(),
+        Iter.of(e.u2(), e.dup(), a -> cp(a) )
     ));
   }
 
   Iterable<ModuleOpens> opens(int count, Span span) {
     return Iter.of(count, span, o ->
-      new ModuleOpens( cp.info(o.u2()), o.u2(),
-        Iter.of( o.u2(), o.dup(), a -> cp.info(a.u2()) )
+      new ModuleOpens( cp(o), o.u2(),
+        Iter.of( o.u2(), o.dup(), a -> cp(a) )
     ));
   }
 
   Iterable<ModuleProvides> provides(int count, Span span) {
     return Iter.of(count, span, p ->
-      new ModuleProvides( cp.info(p.u2()),
-        Iter.of( p.u2(), p.dup(), a -> cp.info(a.u2()) )
+      new ModuleProvides( cp(p),
+        Iter.of( p.u2(), p.dup(), a -> cp(a) )
     ));
   }
 
@@ -398,7 +424,7 @@ class Attribute {
    */
   ModulePackages ModulePackages_attribute(Span span) {
     return new ModulePackages(ATTRIBUTE_ModulePackages,
-      Iter.of( span.u2(), span, a -> cp.info(a.u2()) )
+      Iter.of( span.u2(), span, a -> cp(a) )
     );
   }
 
@@ -407,23 +433,23 @@ class Attribute {
    *    u2 main_class_index
    */
   ModuleMainClass ModuleMainClass_attribute(Span a) {
-    return new ModuleMainClass(ATTRIBUTE_ModuleMainClass, cp.info(a.u2()));
+    return new ModuleMainClass(ATTRIBUTE_ModuleMainClass, cp(a));
   }
 
   /**
    *  Code_attribute :
-   *    u2 max_stack
-   *    u2 max_locals
-   *    u4 code_length
-   *    u1 code[code_length]
-   *    u2 exception_table_length
-   *    { u2 start_pc
-   *      u2 end_pc
-   *      u2 handler_pc
-   *      u2 catch_type
-   *    } exception_table[exception_table_length]
-   *    u2 attributes_count
-   *    attribute_info attributes[attributes_count]
+    u2 max_stack
+    u2 max_locals
+    u4 code_length
+    u1 code[code_length]
+    u2 exception_table_length
+    { u2 start_pc
+      u2 end_pc
+      u2 handler_pc
+      u2 catch_type
+    } exception_table[exception_table_length]
+    u2 attributes_count
+    attribute_info attributes_index[attributes_count]
    */
   Code Code_attribute(Span a) {
     var max_stack = a.u2();
@@ -442,7 +468,7 @@ class Attribute {
       max_stack,
       max_locals,
       codes( code_span ),
-      exception_table( exception_table_length, exception_table_span ),
+      exceptions( exception_table_length, exception_table_span ),
       attributes( attributes_count, attributes_span )
     );
   }
@@ -452,17 +478,21 @@ class Attribute {
     return Iter.of( code, a -> Disasm.decode(a,base) );
   }
 
-  Iterable<Except> exception_table(int count, Span span) {
+  Iterable<Except> exceptions(int count, Span span) {
     return Iter.of(count, span, a -> {
       var start_pc = a.u2();
       var end_pc = a.u2();
       var handler_pc = a.u2();
       var c = a.u2();
-      return new Except( start_pc, end_pc, handler_pc, (c != 0 ? cp.info(c) : null) );
+      return new Except( start_pc, end_pc, handler_pc, (c != 0 ? bc.cp_info(c) : null) );
     });
   }
 
-    /**
+  Iterable<AttributeInfo> attributes(int count, Span span) {
+    return bc.attribute_list(index(span,count));
+  }
+
+  /**
    *  StackMapTable_attribute :
    *    u2 number_of_entries
    *    stack_map_frame entries[number_of_entries]
@@ -712,11 +742,11 @@ class Attribute {
            E_int, E_long,
            E_short, E_boolean,
            E_String
-           -> new ElementValue.Const(tag, cp.info(a.u2()) );
+           -> new ElementValue.Const(tag, cp(a) );
       case E_Enum
-           -> new ElementValue.EnumConst(tag, cp.info(a.u2()), cp.info(a.u2()) );
+           -> new ElementValue.EnumConst(tag, cp(a), cp(a) );
       case E_Class
-           -> new ElementValue.Class(tag, cp.info(a.u2()) );
+           -> new ElementValue.Class(tag, cp(a) );
       case E_Annotation
            -> new ElementValue.Annotated(tag, annotation(a) );
       case E_Array
@@ -770,11 +800,11 @@ class Attribute {
    *    } element_value_pairs[num_element_value_pairs]
    */
   Annotation annotation(Span a) {
-    return new Annotation( cp.info(a.u2()), element_value_pairs(a));
+    return new Annotation( cp(a), element_value_pairs(a));
   }
 
   Iterable<ElementValuePair> element_value_pairs(Span span) {
-    return Iter.of( span.u2(), span, a -> new ElementValuePair( cp.info(a.u2()), element_value(a) ));
+    return Iter.of( span.u2(), span, a -> new ElementValuePair( cp(a), element_value(a) ));
   }
 
   /**
