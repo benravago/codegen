@@ -36,23 +36,23 @@ public class Print { // javap
   void f(String format, Object... args) { out.format(format,args); }
 
   /**
-   *  ClassFile: @ 4.1
-    u4             magic
-    u2             minor_version
-    u2             major_version
-    u2             constant_pool_count
-    cp_info        constant_pool[constant_pool_count-1]
-    u2             access_flags
-    u2             this_class
-    u2             super_class
-    u2             interfaces_count
-    u2             interfaces[interfaces_count]
-    u2             fields_count
-    field_info     fields[fields_count]
-    u2             methods_count
-    method_info    methods[methods_count]
-    u2             attributes_count
-    attribute_info attributes[attributes_count]
+   *  ClassFile : @ 4.1
+   *    u4 magic
+   *    u2 minor_version
+   *    u2 major_version
+   *    u2 constant_pool_count
+   *    cp_info constant_pool[constant_pool_count-1]
+   *    u2 access_flags
+   *    u2 this_class
+   *    u2 super_class
+   *    u2 interfaces_count
+   *    u2 interfaces[interfaces_count]
+   *    u2 fields_count
+   *    field_info fields[fields_count]
+   *    u2 methods_count
+   *    method_info methods[methods_count]
+   *    u2 attributes_count
+   *    attribute_info attributes[attributes_count]
    */
   public void print(byte[] b) {
     cf = ClassFile.parse(b);
@@ -261,11 +261,11 @@ public class Print { // javap
 
   /**
    *  field_info : @ 4.5
-    u2 access_flags
-    u2 name_index
-    u2 descriptor_index
-    u2 attributes_count
-    attribute_info attributes[attributes_count]
+   *    u2 access_flags
+   *    u2 name_index
+   *    u2 descriptor_index
+   *    u2 attributes_count
+   *    attribute_info attributes[attributes_count]
    */
   void fields() {
     for (var d:cf.fields()) {
@@ -277,11 +277,11 @@ public class Print { // javap
 
   /**
    *  method_info : @ 4.6
-    u2 access_flags
-    u2 name_index
-    u2 descriptor_index
-    u2 attributes_count
-    attribute_info attributes[attributes_count]
+   *    u2 access_flags
+   *    u2 name_index
+   *    u2 descriptor_index
+   *    u2 attributes_count
+   *    attribute_info attributes[attributes_count]
    */
   void methods() {
     for (var d:cf.methods()) {
@@ -354,20 +354,20 @@ public class Print { // javap
 
   /**
    *  Code_attribute : @ 4.7.3
-    u2 attribute_name_index
-    u4 attribute_length
-    u2 max_stack
-    u2 max_locals
-    u4 code_length
-    u1 code[code_length]
-    u2 exception_table_length
-    { u2 start_pc
-      u2 end_pc
-      u2 handler_pc
-      u2 catch_type
-    } exception_table[exception_table_length]
-    u2 attributes_count
-    attribute_info attributes[attributes_count]
+   *    u2 attribute_name_index
+   *    u4 attribute_length
+   *    u2 max_stack
+   *    u2 max_locals
+   *    u4 code_length
+   *    u1 code[code_length]
+   *    u2 exception_table_length
+   *    { u2 start_pc
+   *      u2 end_pc
+   *      u2 handler_pc
+   *      u2 catch_type
+   *    } exception_table[exception_table_length]
+   *    u2 attributes_count
+   *    attribute_info attributes[attributes_count]
    */
   void ed(Code c) {
     f("%s %s\n", P, c);
@@ -386,9 +386,14 @@ public class Print { // javap
    *    u2 number_of_entries
    *    stack_map_frame entries[number_of_entries]
    */
-  void ed(StackMapTable a) {
-    f("%s %s\n", P, a);
-    // TODO: print entries[]
+  void ed(StackMapTable t) {
+    f("%s %s\n", P, t);
+    for (var f:t.entries()) ed(f);
+  }
+
+  void ed(StackMapFrame f) {
+    f("%s  %s\n", P, f);
+    // TODO: print stack_map_frame
   }
 
   /**
@@ -396,8 +401,9 @@ public class Print { // javap
    *    u2 number_of_exceptions
    *    u2 exception_index_table[number_of_exceptions]
    */
-  void ed(Exceptions a) {
-    f("%s %s\n", P, a);
+  void ed(Exceptions e) {
+    f("%s %s\n", P, e);
+    for (var t:e.types()) ed(t);
   }
 
   /**
@@ -409,9 +415,9 @@ public class Print { // javap
    *      u2 inner_class_access_flags
    *    } classes[number_of_classes]
    */
-  void ed(InnerClasses a) {
-    f("%s %s\n", P, a);
-    // TODO: print classes[]
+  void ed(InnerClasses c) {
+    f("%s %s\n", P, c);
+    for (var t:c.types()) f("%s  %s\n", P, t);
   }
 
   /**
@@ -494,7 +500,7 @@ public class Print { // javap
    */
   void ed(LocalVariableTypeTable t) {
     f("%s %s\n", P, t);
-    // TODO: print local_variable_type_table[]
+    for (var l:t.types()) f("%s  %s\n", P, l);
   }
 
   /**
@@ -506,8 +512,8 @@ public class Print { // javap
 
   /**
    *  RuntimeVisibleAnnotations_attribute : @ 4.7.16
-    u2 num_annotations
-    attributes annotations[num_annotations]
+   *    u2 num_annotations
+   *    attributes annotations[num_annotations]
    */
   void ed(RuntimeVisibleAnnotations r) {
     f("%s %s\n", P, r);
@@ -516,36 +522,36 @@ public class Print { // javap
 
   /**
    *  RuntimeInvisibleAnnotations_attribute : @ 4.7.17
-    u2 num_annotations
-    attributes annotations[num_annotations]
+   *    u2 num_annotations
+   *    attributes annotations[num_annotations]
    */
-  void ed(RuntimeInvisibleAnnotations a) {
-    f("%s %s\n", P, a);
-    // TODO: print annotations[]
+  void ed(RuntimeInvisibleAnnotations r) {
+    f("%s %s\n", P, r);
+    for (var a:r.annotations()) ed(a);
   }
 
   /**
    *  RuntimeVisibleParameterAnnotations_attribute : @ 4.7.18
-    u1 num_parameters
-    { u2 num_annotations
-      attributes annotations[num_annotations]
-    } parameter_annotations[num_parameters]
+   *   u1 num_parameters
+   *   { u2 num_annotations
+   *     attributes annotations[num_annotations]
+   *   } parameter_annotations[num_parameters]
    */
-  void ed(RuntimeVisibleParameterAnnotations a) {
-    f("%s %s\n", P, a);
-    // TODO: print parameter_annotations[]
+  void ed(RuntimeVisibleParameterAnnotations r) {
+    f("%s %s\n", P, r);
+    for (var p:r.annotations()) ed(p);
   }
 
   /**
    *  RuntimeInvisibleParameterAnnotations_attribute : @ 4.7.19
-    u1 num_parameters
-    { u2 num_annotations
-      attributes annotations[num_annotations]
-    } parameter_annotations[num_parameters]
+   *    u1 num_parameters
+   *    { u2 num_annotations
+   *      attributes annotations[num_annotations]
+   *    } parameter_annotations[num_parameters]
    */
-  void ed(RuntimeInvisibleParameterAnnotations a) {
-    f("%s %s\n", P, a);
-    // TODO: print parameter_annotations[]
+  void ed(RuntimeInvisibleParameterAnnotations r) {
+    f("%s %s\n", P, r);
+    for (var p:r.annotations()) ed(p);
   }
 
   /**
@@ -553,9 +559,9 @@ public class Print { // javap
    *    u2 num_annotations
    *    type_annotation annotations[num_annotations]
    */
-  void ed(RuntimeVisibleTypeAnnotations a) {
-    f("%s %s\n", P, a);
-    // TODO: print annotations[]
+  void ed(RuntimeVisibleTypeAnnotations r) {
+    f("%s %s\n", P, r);
+    for (var t:r.annotations()) ed(t);
   }
 
   /**
@@ -565,7 +571,7 @@ public class Print { // javap
    */
   void ed(RuntimeInvisibleTypeAnnotations r) {
     f("%s %s\n", P, r);
-    // TODO: print annotations[]
+    for (var t:r.annotations()) ed(t);
   }
 
   /**
@@ -578,12 +584,17 @@ public class Print { // javap
 
   void ed(Annotation a) {
     f("%s  %s\n", P, a);
-    // TODO: print more detailS
+    // TODO: print annotation
+  }
+
+  void ed(ParameterAnnotation a) {
+    f("%s  %s\n", P, a);
+    // TODO: print parameter_annotation
   }
 
   void ed(TypeAnnotation a) {
     f("%s  %s\n", P, a);
-    // TODO: print more detailS
+    // TODO: print type_annotation
   }
 
   /**
@@ -594,9 +605,12 @@ public class Print { // javap
    *      u2 bootstrap_arguments[num_bootstrap_arguments]
    *    } bootstrap_methods[num_bootstrap_methods]
    */
-  void ed(BootstrapMethods a) {
-    f("%s %s\n", P, a);
-    // TODO: print methods[]
+  void ed(BootstrapMethods b) {
+    f("%s %s\n", P, b);
+    for (var m:b.methods()) {
+      f("%s  %s\n", P, m);
+      // TODO: print bootstrap_arguments[]
+    }
   }
 
   /**
@@ -606,9 +620,9 @@ public class Print { // javap
    *      u2 access_flags
    *    } parameters[parameters_count]
    */
-  void ed(MethodParameters a) {
-    f("%s %s\n", P, a);
-    // TODO: print parameters[]
+  void ed(MethodParameters m) {
+    f("%s %s\n", P, m);
+    for (var p:m.parameters()) f("%s  %s\n", P, p);
   }
 
   /**
@@ -643,7 +657,7 @@ public class Print { // javap
    */
   void ed(Module a) {
     f("%s %s\n", P, a);
-    //  TODO: print requires[], exports[], opens[], uses_index[], provides[]
+    // TODO: print requires[], exports[], opens[], uses_index[], provides[]
   }
 
   /**
@@ -651,9 +665,9 @@ public class Print { // javap
    *    u2 package_count
    *    u2 package_index[package_count]
    */
-  void ed(ModulePackages a) {
-    f("%s %s\n", P, a);
-    // TODO: print package_index[]
+  void ed(ModulePackages m) {
+    f("%s %s\n", P, m);
+    for (var p:m.packages()) f("%s  %s\n", P, p);
   }
 
   /**
@@ -679,7 +693,7 @@ public class Print { // javap
    */
   void ed(NestMembers a) {
     f("%s %s\n", P, a);
-    // TODO: print classes[]
+    for (var m:a.members()) f("%s  %s\n", P, m);
   }
 
   /**
@@ -687,9 +701,14 @@ public class Print { // javap
    *    u2 components_count
    *    record_component_info components[components_count]
    */
-  void ed(Record a) {
-    f("%s %s\n", P, a);
-    // TODO: print components[]
+  void ed(Record r) {
+    f("%s %s\n", P, r);
+    for (var c:r.components()) ed(c);
+  }
+
+  void ed(RecordComponent c) {
+    f("%s  %s\n", P, c);
+    // TODO: print record_component
   }
 
   /**
@@ -699,7 +718,7 @@ public class Print { // javap
    */
   void ed(PermittedSubclasses a) {
     f("%s %s\n", P, a);
-    // TODO: print classes[]
+    for (var s:a.subclasses()) f("%s  %s\n", P, s);
   }
 
 }
