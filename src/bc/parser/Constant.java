@@ -1,7 +1,7 @@
 package bc.parser;
 
 import bc.parser.Bytecode.Span;
-import static bc.ClassFile.*;
+import static bc.ClassFile.CP;
 import static bc.JVMS.*;
 
 class Constant {
@@ -45,7 +45,12 @@ class Constant {
     return z;
   }
 
-  static CpInfo info(Span a, short i) {
+  /**
+   *  cp_info :
+   *    u1 tag
+   *    u1 info[]
+   */
+  static CP.Info info(Span a, short i) {
     var tag = a.u1();
     return switch(tag) {
       case CONSTANT_Utf8 -> utf8_info(a,i);
@@ -71,165 +76,148 @@ class Constant {
 
   /**
    *  CONSTANT_Utf8_info :
-   *    u1 tag
    *    u2 length
    *    u1 bytes[length]
    */
-  static Utf8Ref utf8_info(Span a, short i) {
+  static CP.Utf8 utf8_info(Span a, short i) {
     var len = a.u2();
-    return new Utf8Ref(CONSTANT_Utf8, i, (short)a.p, len );
+    return new CP.Utf8(CONSTANT_Utf8, i, (short)a.p, len );
   }
 
   /**
    *  CONSTANT_Integer_info :
-   *    u1 tag
    *    u4 bytes
    */
-  static IntegerRef integer_info(Span a, short i) {
-    return new IntegerRef(CONSTANT_Integer, i, (short)a.p );
+  static CP.Integer integer_info(Span a, short i) {
+    return new CP.Integer(CONSTANT_Integer, i, (short)a.p );
   }
 
   /**
    *  CONSTANT_Float_info :
-   *    u1 tag
    *    u4 bytes
    */
-  static FloatRef float_info(Span a, short i) {
-    return new FloatRef(CONSTANT_Float, i, (short)a.p );
+  static CP.Float float_info(Span a, short i) {
+    return new CP.Float(CONSTANT_Float, i, (short)a.p );
   }
 
   /**
    *  CONSTANT_Long_info :
-   *    u1 tag
    *    u4 high_bytes
    *    u4 low_bytes
    */
-  static LongRef long_info(Span a, short i) {
-    return new LongRef(CONSTANT_Long, i, (short)a.p );
+  static CP.Long long_info(Span a, short i) {
+    return new CP.Long(CONSTANT_Long, i, (short)a.p );
   }
   /**
    *  CONSTANT_Double_info :
-   *    u1 tag
    *    u4 high_bytes
    *    u4 low_bytes
    */
-  static DoubleRef double_info(Span a, short i) {
-    return new DoubleRef(CONSTANT_Double, i, (short)a.p );
+  static CP.Double double_info(Span a, short i) {
+    return new CP.Double(CONSTANT_Double, i, (short)a.p );
   }
 
   /**
    *  CONSTANT_Class_info :
-   *    u1 tag
    *    u2 name_index
    */
-  static ClassRef class_info(Span a, short i) {
-    return new ClassRef(CONSTANT_Class, i, a.u2() );
+  static CP.Class class_info(Span a, short i) {
+    return new CP.Class(CONSTANT_Class, i, a.u2() );
   }
 
   /**
    *  CONSTANT_String_info :
-   *    u1 tag
    *    u2 string_index
    */
-  static StringRef string_info(Span a, short i) {
-    return new StringRef(CONSTANT_String, i, a.u2() );
+  static CP.String string_info(Span a, short i) {
+    return new CP.String(CONSTANT_String, i, a.u2() );
   }
 
   /**
    *  CONSTANT_Fieldref_info :
-   *    u1 tag
    *    u2 class_index
    *    u2 name_and_type_index
    */
-  static FieldRef fieldref_info(Span a, short i) {
-    return new FieldRef(CONSTANT_Fieldref, i, a.u2(), a.u2() );
+  static CP.Field fieldref_info(Span a, short i) {
+    return new CP.Field(CONSTANT_Fieldref, i, a.u2(), a.u2() );
   }
 
   /**
    *  CONSTANT_Methodref_info :
-   *    u1 tag
    *    u2 class_index
    *    u2 name_and_type_index
    */
-  static MethodRef methodref_info(Span a, short i) {
-    return new MethodRef(CONSTANT_Methodref, i, a.u2(), a.u2() );
+  static CP.Method methodref_info(Span a, short i) {
+    return new CP.Method(CONSTANT_Methodref, i, a.u2(), a.u2() );
   }
 
   /**
    *  CONSTANT_InterfaceMethodref_info :
-   *    u1 tag
    *    u2 class_index
    *    u2 name_and_type_index
    */
-  static InterfaceMethodRef interface_methodref_info(Span a, short i) {
-    return new InterfaceMethodRef(CONSTANT_InterfaceMethodref, i, a.u2(), a.u2() );
+  static CP.InterfaceMethod interface_methodref_info(Span a, short i) {
+    return new CP.InterfaceMethod(CONSTANT_InterfaceMethodref, i, a.u2(), a.u2() );
   }
 
   /**
    *  CONSTANT_NameAndType_info :
-   *    u1 tag
    *    u2 name_index
    *    u2 descriptor_index
    */
-  static NameAndTypeRef name_and_type_info(Span a, short i) {
-    return new NameAndTypeRef(CONSTANT_NameAndType, i, a.u2(), a.u2() );
+  static CP.NameAndType name_and_type_info(Span a, short i) {
+    return new CP.NameAndType(CONSTANT_NameAndType, i, a.u2(), a.u2() );
   }
 
   /**
    *  CONSTANT_MethodHandle_info :
-   *    u1 tag
    *    u1 reference_kind
    *    u2 reference_index
    */
-  static MethodHandleRef methodhandle_info(Span a, short i) {
-    return new MethodHandleRef(CONSTANT_MethodHandle, i, a.u1(), a.u2() );
+  static CP.MethodHandle methodhandle_info(Span a, short i) {
+    return new CP.MethodHandle(CONSTANT_MethodHandle, i, a.u1(), a.u2() );
   }
 
   /**
    *  CONSTANT_MethodType_info :
-   *    u1 tag
    *    u2 descriptor_index
    */
-  static MethodTypeRef methodtype_info(Span a, short i) {
-    return new MethodTypeRef(CONSTANT_MethodType, i, a.u2() );
+  static CP.MethodType methodtype_info(Span a, short i) {
+    return new CP.MethodType(CONSTANT_MethodType, i, a.u2() );
   }
 
   /**
    *  CONSTANT_Dynamic_info :
-   *    u1 tag
    *    u2 bootstrap_method_attr_index
    *    u2 name_and_type_index
    */
-  static DynamicRef dynamic_info(Span a, short i) {
-    return new DynamicRef(CONSTANT_Dynamic, i, a.u2(), a.u2() );
+  static CP.Dynamic dynamic_info(Span a, short i) {
+    return new CP.Dynamic(CONSTANT_Dynamic, i, a.u2(), a.u2() );
   }
 
   /**
    *  CONSTANT_InvokeDynamic_info :
-   *    u1 tag
    *    u2 bootstrap_method_attr_index
    *    u2 name_and_type_index
    */
-  static InvokeDynamicRef invokedynamic_info(Span a, short i) {
-    return new InvokeDynamicRef(CONSTANT_InvokeDynamic, i, a.u2(), a.u2() );
+  static CP.InvokeDynamic invokedynamic_info(Span a, short i) {
+    return new CP.InvokeDynamic(CONSTANT_InvokeDynamic, i, a.u2(), a.u2() );
   }
 
   /**
    *  CONSTANT_Module_info :
-   *    u1 tag
    *    u2 name_index
    */
-  static ModuleRef module_info(Span a, short i) {
-    return new ModuleRef(CONSTANT_Module, i, a.u2() );
+  static CP.Module module_info(Span a, short i) {
+    return new CP.Module(CONSTANT_Module, i, a.u2() );
   }
 
   /**
    *  CONSTANT_Package_info :
-   *    u1 tag
    *    u2 name_index
    */
-  static PackageRef package_info(Span a, short i) {
-    return new PackageRef(CONSTANT_Package, i, a.u2() );
+  static CP.Package package_info(Span a, short i) {
+    return new CP.Package(CONSTANT_Package, i, a.u2() );
   }
 
 }

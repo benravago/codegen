@@ -25,7 +25,7 @@ public final class Bytecode implements bc.ClassFile {
                                 // }
 
   final Attribute attribute;
-  final CpInfo[] cache;
+  final CP.Info[] cache;
 
   public Bytecode(byte[] bytes) {
     b = bytes;
@@ -51,7 +51,7 @@ public final class Bytecode implements bc.ClassFile {
 
     assert !a.more();
     attribute = new Attribute(this);
-    cache = new CpInfo[constant_pool_count];
+    cache = new CP.Info[constant_pool_count];
   }
 
   @Override public int    magic()           { return magic; }
@@ -59,19 +59,19 @@ public final class Bytecode implements bc.ClassFile {
   @Override public short  major()           { return major_version; }
   @Override public short  constantCount()   { return constant_pool_count; }
   @Override public short  flags()           { return access_flags; }
-  @Override public CpInfo type()            { return cp_info(this_class); }
-  @Override public CpInfo superType()       { return cp_info(super_class); }
+  @Override public CP.Info type()           { return cp_info(this_class); }
+  @Override public CP.Info superType()      { return cp_info(super_class); }
   @Override public short  interfacesCount() { return interfaces_count; }
   @Override public short  fieldsCount()     { return fields_count; }
   @Override public short  methodsCount()    { return methods_count; }
   @Override public short  attributesCount() { return attributes_count; }
 
   @Override
-  public Iterable<CpInfo> constantPool() {
+  public Iterable<CP.Info> constantPool() {
     return Iter.of(1, constant_pool.length, i -> cp_info(i) );
   }
   @Override
-  public Iterable<CpInfo> interfaces() {
+  public Iterable<CP.Info> interfaces() {
     return Iter.of(span(interfaces[0],interfaces[1]), a -> cp_info(a.u2()) );
   }
   @Override
@@ -119,7 +119,7 @@ public final class Bytecode implements bc.ClassFile {
    *  u1 info[];
    * }
    */
-  CpInfo cp_info(int i) {
+  CP.Info cp_info(int i) {
     var c = cache[i];
     if (c == null) {
       var s = constant_pool[i-1];
@@ -129,7 +129,7 @@ public final class Bytecode implements bc.ClassFile {
     return c;
   }
 
-  record Nil(byte tag, short index) implements CpInfo {}
+  record Nil(byte tag, short index) implements CP.Info {}
 
   /**
    * field_info {

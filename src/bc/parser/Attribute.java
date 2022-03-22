@@ -33,11 +33,11 @@ class Attribute {
     return z;
   }
 
-  CpInfo cp(Span a)  { return bc.cp_info(a.u2()); }
+  CP.Info cp(Span a)  { return bc.cp_info(a.u2()); }
 
   String name(short i) {
     var c = bc.cp_info(i);
-    if (c instanceof Utf8Ref u) {
+    if (c instanceof CP.Utf8 u) {
       var n = names[u.index()];
       if (n == null) {
         n = names[u.index()] = bc.chars(u.offset(),u.length()).toString();
@@ -387,7 +387,7 @@ class Attribute {
     return bc.span(start,a.p);
   }
 
-  Iterable<CpInfo> uses(int count, Span span) {
+  Iterable<CP.Info> uses(int count, Span span) {
     return Iter.of(count, span, a -> cp(a) );
   }
 

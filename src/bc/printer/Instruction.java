@@ -1,17 +1,11 @@
 package bc.printer;
 
 import java.util.Formatter;
-import java.util.function.IntFunction;
 
 import bc.ClassFile.Opcode;
 import static bc.JVMS.*;
 
-class Instruction {
-
-  Instruction(IntFunction<CharSequence> constantPoolResolver, IntFunction<CharSequence> localVariableResolver) {
-    cpResolver = constantPoolResolver;
-    lvResolver = localVariableResolver;
-  }
+final class Instruction {
 
   StringBuilder s = new StringBuilder();
   Formatter f = new Formatter(s);
@@ -214,8 +208,8 @@ class Instruction {
       case OP_arraylength     -> i_             ( "arraylength"     ); // be
       case OP_athrow          -> i_             ( "athrow"          ); // bf
       case OP_checkcast       -> i_2c           ( "checkcast"       ); // c0  (2)  cp.index
-      case OP_instanceof      -> i_2c           ( "instanceof"      ); // c1  (2)  cp.index
-      case OP_monitorenter    -> i_             ( "monitorenter"    ); // c2
+      case OP_instanceof      -> i_2c           ( "instanceof"      ); // cp1  (2)  cp.index
+      case OP_monitorenter    -> i_             ( "monitorenter"    ); // cp2
       case OP_monitorexit     -> i_             ( "monitorexit"     ); // c3
       case OP_wide            -> i_1w_2c_v      ( "wide"            ); // c4  (1,2 | 1,2,2) opcode, index | iinc, index, count
       case OP_multianewarray  -> i_2c_1d        ( "multianewarray"  ); // c5  (2,1)  index, dimensions
@@ -230,34 +224,34 @@ class Instruction {
     return s;
   }
 
-  void i_        (String i) { f.format( "%04x  %s"            , o.pc(), i                      ); } //  -
-  void i_1b      (String i) { f.format( "%04x  %s  %d"        , o.pc(), i, (Byte)o.args()      ); } //  (1)  byte
-  void i_2s      (String i) { f.format( "%04x  %s  %d"        , o.pc(), i, (Short)o.args()     ); } //  (2)  short
-  void i_1c      (String i) { f.format( "%04x  %s  %s"        , o.pc(), i, cp((Byte)o.args())  ); } //  (1)  cp.index
-  void i_2c      (String i) { f.format( "%04x  %s  %s"        , o.pc(), i, cp((Short)o.args()) ); } //  (2)  cp.index
-  void i_1v      (String i) { f.format( "%04x  %s  %s"        , o.pc(), i, lv((Byte)o.args())  ); } //  (1)  lv.index
-  void i_2j      (String i) { f.format( "%04x  %s  0x%04x"    , o.pc(), i, (Short)o.args()     ); } //  (2)  branch
-  void i_4j      (String i) { f.format( "%04x  %s  0x%08x"    , o.pc(), i, (Integer)o.args()   ); } //  (4)  branch
-  void i_1t      (String i) { f.format( "%04x  %s  +%d"       , o.pc(), i, (Byte)o.args()      ); } //  (1)  atype
-  void i_1c_1d   (String i) { f.format( "%04x  %s  %s, %d"    , o.pc(), i, c1(0), u1(1)        ); } //  (1,1)  cp.index, const
-  void i_2c_1d   (String i) { f.format( "%04x  %s  %s, %d"    , o.pc(), i, c2(0), u1(1)        ); } //  (2,1)  cp.index, const
-  void i_2c_1d_0 (String i) { f.format( "%04x  %s  %s, %d, 0" , o.pc(), i, c2(0), u1(1)        ); } //  (2,1,0)  cp.index, count, 0
-  void i_2c_0_0  (String i) { f.format( "%04x  %s  %s, 0, 0"  , o.pc(), i, c2(0)               ); } //  (2,0,0)  cp.index, 0, 0
+  void i_        (String i) { f( "%04x  %s"            , o.pc(), i                   ); } //  -
+  void i_1b      (String i) { f( "%04x  %s  %d"        , o.pc(), i, u1()             ); } //  (1)  byte
+  void i_2s      (String i) { f( "%04x  %s  %d"        , o.pc(), i, u2()             ); } //  (2)  short
+  void i_1c      (String i) { f( "%04x  %s  %s"        , o.pc(), i, cp(u1())         ); } //  (1)  cp.index
+  void i_2c      (String i) { f( "%04x  %s  %s"        , o.pc(), i, cp(u2())         ); } //  (2)  cp.index
+  void i_1v      (String i) { f( "%04x  %s  %s"        , o.pc(), i, lv(u1())         ); } //  (1)  lv.index
+  void i_2j      (String i) { f( "%04x  %s  0x%04x"    , o.pc(), i, u2()             ); } //  (2)  branch
+  void i_4j      (String i) { f( "%04x  %s  0x%08x"    , o.pc(), i, u4()             ); } //  (4)  branch
+  void i_1t      (String i) { f( "%04x  %s  +%d"       , o.pc(), i, u1()             ); } //  (1)  atype
+  void i_1c_1d   (String i) { f( "%04x  %s  %s, %d"    , o.pc(), i, cp(u1(0)), u1(1) ); } //  (1,1)  cp.index, const
+  void i_2c_1d   (String i) { f( "%04x  %s  %s, %d"    , o.pc(), i, cp(u2(0)), u1(1) ); } //  (2,1)  cp.index, const
+  void i_2c_1d_0 (String i) { f( "%04x  %s  %s, %d, 0" , o.pc(), i, cp(u2(0)), u1(1) ); } //  (2,1,0)  cp.index, count, 0
+  void i_2c_0_0  (String i) { f( "%04x  %s  %s, 0, 0"  , o.pc(), i, cp(u2(0))        ); } //  (2,0,0)  cp.index, 0, 0
 
   void i_p_4d_4d_4d_v(String ins) {
     var v = (Integer[])o.args();
-    f.format("%04x  %s  %d,", o.pc(), ins, v[0] ); // pc, op, padding
+    f("%04x  %s  %d,", o.pc(), ins, v[0] ); // pc, op, padding
     for (int i = 1, m = v.length; i < m; i++) {
-      f.format( " 0x%08x,", v[i] ); // default, low, high, jump offsets
+      f( " 0x%08x,", v[i] ); // default, low, high, jump offsets
     }
     s.setLength(s.length()-1); // remove trailing ','
   }
 
   void i_p_4d_4d_v(String ins) {
     var v = (Integer[])o.args();
-    f.format("%04x  %s  %d, 0x%08x, %d,", o.pc(), ins, v[0], v[1], v[2] ); // pc, op, padding, default, npairs
+    f("%04x  %s  %d, 0x%08x, %d,", o.pc(), ins, v[0], v[1], v[2] ); // pc, op, padding, default, npairs
     for (int i = 3, m = v.length; i < m;) {
-      f.format( " 0x%08x, 0x%08x,", v[i++], v[i++] ); // match/offset pairs
+      f( " 0x%08x, 0x%08x,", v[i++], v[i++] ); // match/offset pairs
     }
     s.setLength(s.length()-1); // remove trailing ','
   }
@@ -265,9 +259,9 @@ class Instruction {
   void i_1w_2c_v(String ins) {
     var i = u1(0);
     if (i == OP_iinc) {
-      f.format("%04x  %s  %s, %s, %d" , o.pc(), ins, "iinc", c2(1), u2(2) ); // (1,2,2) 'iinc', cp.index, count
+      f("%04x  %s  %s, %s, %d" , o.pc(), ins, "iinc", cp(u2(1)), u2(2) ); // (1,2,2) 'iinc', cp.index, count
     } else {
-      f.format("%04x  %s  %s, %s" , o.pc(), ins, wide_op(i), c2(1) ); // (1,2) opcode, cp.index
+      f("%04x  %s  %s, %s" , o.pc(), ins, wide_op(i), cp(u2(1)) ); // (1,2) opcode, cp.index
     }
   }
 
@@ -288,16 +282,16 @@ class Instruction {
     };
   }
 
-  Byte  u1(int i) { return (Byte) ((Object[])o.args())[i]; }
-  Short u2(int i) { return (Short)((Object[])o.args())[i]; }
+  void f(String format, Object... args) { f.format(format,args); }
 
-  CharSequence c1(int i) { return cp(u1(i)); }
-  CharSequence c2(int i) { return cp(u2(i)); }
+  Byte    u1() { return (Byte)   o.args(); }
+  Short   u2() { return (Short)  o.args(); }
+  Integer u4() { return (Integer)o.args(); }
 
-  CharSequence cp(int i) { return cpResolver.apply(i); }
-  CharSequence lv(int i) { return lvResolver.apply(i); }
+  Byte    u1(int i) { return (Byte) ((Object[])o.args())[i]; }
+  Short   u2(int i) { return (Short)((Object[])o.args())[i]; }
 
-  final IntFunction<CharSequence> cpResolver;
-  final IntFunction<CharSequence> lvResolver;
+  CharSequence cp(int i) { return "#"+i; }
+  CharSequence lv(int i) { return "$"+i; }
 
 }
