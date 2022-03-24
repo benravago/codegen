@@ -2,135 +2,97 @@ package bc;
 
 public interface CompilationUnit {
 
-  interface ClassInfo {                          // ClassFile {
-                                                 //   u4             magic;
-                                                 //   u2             minor_version;
-    ClassInfo version(float m);                  //   u2             major_version;
-                                                 //   u2             constant_pool_count;
-    ClassInfo constants(Object...value);         //   cp_info        constant_pool[constant_pool_count-1];
-    ClassInfo flags(JVMS.Access...flags);        //   u2             access_flags;
-                                                 //   u2             this_class;
-    ClassInfo superType(Object type);            //   u2             super_class;
-                                                 //   u2             interfaces_count;
-    ClassInfo interfaces(Object...type);         //   u2             interfaces[interfaces_count];
-                                                 //   u2             fields_count;
-    ClassInfo fields(FieldInfo...args);          //   field_info     fields[fields_count];
-                                                 //   u2             methods_count;
-    ClassInfo methods(MethodInfo...args);        //   method_info    methods[methods_count];
-                                                 //   u2             attributes_count;
-    ClassInfo attributes(AttributeInfo...args);  //   attribute_info attributes[attributes_count];
-                                                 // }
-    /* generates bytecode */
-    byte[] bytes(); 
-    
-    ConstantPool Constant();
+  // version( major_version [ . minor_version ] )
+  ClassInfo Class(Object... type); // this_class [, super_class]
 
-    FieldInfo Field(String name, Object type);
-    MethodInfo Method(String name, Object type);
+  interface ClassInfo {
+    byte[] bytes();
 
-    AttributeInfo InnerClasses();
-    AttributeInfo EnclosingMethod();
-    AttributeInfo Synthetic();
-    AttributeInfo Signature();
-    AttributeInfo SourceFile();
-    AttributeInfo SourceDebugExtension();
-    AttributeInfo Deprecated();
-    AttributeInfo RuntimeVisibleAnnotations();
-    AttributeInfo RuntimeInvisibleAnnotations();
-    AttributeInfo RuntimeVisibleTypeAnnotations();
-    AttributeInfo RuntimeInvisibleTypeAnnotations();
-    AttributeInfo BootstrapMethods();
-    AttributeInfo Module();
-    AttributeInfo ModulePackages();
-    AttributeInfo ModuleMainClass();
-    AttributeInfo NestHost();
-    AttributeInfo NestMembers();
-    AttributeInfo Record();
-    AttributeInfo PermittedSubclasses();
+    ClassInfo flags(short... flags);
+    ClassInfo interfaces(Object... type);
+
+    FieldInfo Field(Object... type);  // name, descriptor
+    MethodInfo Method(Object... type); // name, descriptor
+
+    RecordInfo  Record ();
+
+    ClassInfo  InnerClasses ();
+    ClassInfo  EnclosingMethod ();
+    ClassInfo  Synthetic ();
+    ClassInfo  Signature ();
+    ClassInfo  SourceFile ();
+    ClassInfo  SourceDebugExtension ();
+    ClassInfo  Deprecated ();
+    ClassInfo  RuntimeVisibleAnnotations ();
+    ClassInfo  RuntimeInvisibleAnnotations ();
+    ClassInfo  RuntimeVisibleTypeAnnotations ();
+    ClassInfo  RuntimeInvisibleTypeAnnotations ();
+    ClassInfo  BootstrapMethods ();
+    ClassInfo  Module ();
+    ClassInfo  ModulePackages ();
+    ClassInfo  ModuleMainClass ();
+    ClassInfo  NestHost ();
+    ClassInfo  NestMembers ();
+    ClassInfo  PermittedSubclasses ();
   }
 
   interface FieldInfo {
 
-    FieldInfo flags(JVMS.Access...flags);
-    FieldInfo attributes(AttributeInfo...args);
+    FieldInfo flags(short... flags);
 
-    AttributeInfo ConstantValue();
-    AttributeInfo Synthetic();
-    AttributeInfo Signature();
-    AttributeInfo Deprecated();
-    AttributeInfo RuntimeVisibleAnnotations();
-    AttributeInfo RuntimeInvisibleAnnotations();
-    AttributeInfo RuntimeVisibleTypeAnnotations();
-    AttributeInfo RuntimeInvisibleTypeAnnotations();
+    FieldInfo  ConstantValue ();
+    FieldInfo  Synthetic ();
+    FieldInfo  Signature ();
+    FieldInfo  Deprecated ();
+    FieldInfo  RuntimeVisibleAnnotations ();
+    FieldInfo  RuntimeInvisibleAnnotations ();
+    FieldInfo  RuntimeVisibleTypeAnnotations ();
+    FieldInfo  RuntimeInvisibleTypeAnnotations ();
   }
 
   interface MethodInfo {
 
-    MethodInfo flags(JVMS.Access...flags);
-    MethodInfo attributes(AttributeInfo...args);
+    MethodInfo flags(short... flags);
 
-    AttributeInfo Code();
-    AttributeInfo Exceptions();
-    AttributeInfo Synthetic();
-    AttributeInfo Signature();
-    AttributeInfo Deprecated();
-    AttributeInfo RuntimeVisibleAnnotations();
-    AttributeInfo RuntimeInvisibleAnnotations();
-    AttributeInfo RuntimeVisibleParameterAnnotations();
-    AttributeInfo RuntimeInvisibleParameterAnnotations();
-    AttributeInfo RuntimeVisibleTypeAnnotations();
-    AttributeInfo RuntimeInvisibleTypeAnnotations();
-    AttributeInfo AnnotationDefault();
-    AttributeInfo MethodParameters();
+    CodeInfo  Code ();
+
+    MethodInfo  Exceptions ();
+    MethodInfo  Synthetic ();
+    MethodInfo  Signature ();
+    MethodInfo  Deprecated ();
+    MethodInfo  RuntimeVisibleAnnotations ();
+    MethodInfo  RuntimeInvisibleAnnotations ();
+    MethodInfo  RuntimeVisibleParameterAnnotations ();
+    MethodInfo  RuntimeInvisibleParameterAnnotations ();
+    MethodInfo  RuntimeVisibleTypeAnnotations ();
+    MethodInfo  RuntimeInvisibleTypeAnnotations ();
+    MethodInfo  AnnotationDefault ();
+    MethodInfo  MethodParameters ();
   }
 
-  interface ConstantPool {
-
-    CPInfo Class();
-    CPInfo Fieldref();
-    CPInfo Methodref();
-    CPInfo InterfaceMethodref();
-    CPInfo String();
-    CPInfo Integer();
-    CPInfo Float();
-    CPInfo Long();
-    CPInfo Double();
-    CPInfo NameAndType();
-    CPInfo Utf8();
-    CPInfo MethodHandle();
-    CPInfo MethodType();
-    CPInfo Dynamic();
-    CPInfo InvokeDynamic();
-    CPInfo Module();
-    CPInfo Package();
+  interface CodeInfo {
+    CodeInfo  StackMapTable ();
+    CodeInfo  LineNumberTable ();
+    CodeInfo  LocalVariableTable ();
+    CodeInfo  LocalVariableTypeTable ();
+    CodeInfo  RuntimeVisibleTypeAnnotations ();
+    CodeInfo  RuntimeInvisibleTypeAnnotations ();
   }
 
-  interface CPInfo {}
-  interface AttributeInfo {}
+  interface RecordInfo {
+    RecordInfo  Signature ();
+    RecordInfo  RuntimeVisibleAnnotations ();
+    RecordInfo  RuntimeInvisibleAnnotations ();
+    RecordInfo  RuntimeVisibleTypeAnnotations ();
+    RecordInfo  RuntimeInvisibleTypeAnnotations ();
+  }
 
-  /*
+  // factory
 
-  Code();
-    StackMapTable
-    LineNumberTable
-    LocalVariableTable
-    LocalVariableTypeTable
-    RuntimeVisibleTypeAnnotations
-    RuntimeInvisibleTypeAnnotations
-
-  Record(...)
-    Signature
-    RuntimeVisibleAnnotations
-    RuntimeInvisibleAnnotations
-    RuntimeVisibleTypeAnnotations
-    RuntimeInvisibleTypeAnnotations
-
-  */
-  
-  static ClassInfo build(String c) { // this_class
+  static CompilationUnit build(float v) { // major_version[.minor_version]
     try {
-      return (ClassInfo)
-        Class.forName("bc.builder.Bytecode").getConstructor(c.getClass()).newInstance((Object)c);
+      return (CompilationUnit)
+        Class.forName("bc.builder.Bytecode").getConstructor(Float.TYPE).newInstance(v);
     } catch (Exception e) {
       throw new UnsupportedOperationException(e);
     }

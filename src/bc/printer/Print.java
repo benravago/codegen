@@ -135,7 +135,7 @@ public class Print { // javap
   }
 
   /**
-   *  CONSTANT_InterfaceMethodref_info:  # 4.4.2
+   *  CONSTANT_InterfaceMethodref_info: @ 4.4.2
    *    u2 class_index
    *    u2 name_and_type_index
    */
@@ -169,7 +169,7 @@ public class Print { // javap
   }
 
   /**
-   *  CONSTANT_Long_info : 4.4.5
+   *  CONSTANT_Long_info : @ 4.4.5
    *    u4 high_bytes
    *    u4 low_bytes
    */

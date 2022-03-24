@@ -19,7 +19,7 @@ public interface ClassFile {
   short                   attributesCount();
   Iterable<AttributeInfo> attributes();
 
-  // JVMS structures
+  // constant pool
 
   interface CP {
 
@@ -51,6 +51,14 @@ public interface ClassFile {
     record Dynamic(byte tag, short index, short bootstrapMethod, short namedType) implements Info {}
     record InvokeDynamic(byte tag, short index, short bootstrapMethod, short namedType) implements Info {}
   }
+
+  // to get cp_info values
+
+  CharSequence chars(int offset, int length); // Utf8
+  int int32(int offset); // Integer, Float
+  long int64(int offset); // Long, Double
+
+  // class members
 
   record FieldInfo(short flags, CP.Info name, CP.Info descriptor, Iterable<AttributeInfo> attributes) {}
   record MethodInfo(short flags, CP.Info name, CP.Info descriptor, Iterable<AttributeInfo> attributes) {}
@@ -194,12 +202,6 @@ public interface ClassFile {
     record Annotated(byte tag, Annotation value) implements ElementValue {}
     record Array(byte tag, Iterable<ElementValue> values) implements ElementValue {}
   }
-
-  // to get cp_info values
-
-  CharSequence chars(int offset, int length); // Utf8
-  int int32(int offset); // Integer, Float
-  long int64(int offset); // Long, Double
 
   // factory
 
