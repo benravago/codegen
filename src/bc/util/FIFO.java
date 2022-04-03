@@ -2,32 +2,32 @@ package bc.util;
 
 public class FIFO<E> extends Linked<E> { // List
 
-  protected Object[] tail = null;
+  protected Node tail = null;
 
   public void add(E item) {
-    var next = new Object[] { null, item };
+    var node = new Node();
+    node.item = item;
     if (tail != null) {
-      tail[NEXT] = next;
+      tail.next = node;
     }
-    tail = next;
+    tail = node;
     if (head == null) {
       head = tail;
     }
     size++;
   }
 
-  @SuppressWarnings("unchecked")
   public E take() {
-    if (head != null) {
-      var next = head;
-      head = (Object[]) next[NEXT];
-      size--;
-      if (head == null) {
-        tail = null;
-      }
-      return (E) next[ITEM];
+    if (head == null) {
+      return null;
     }
-    return null;
+    var node = head;
+    head = node.next;
+    size--;
+    if (head == null) {
+      tail = null;
+    }
+    return node.item;
   }
 
 }

@@ -76,6 +76,12 @@ public class Bytecode implements CompilationUnit {
   } // MethodInfo
 
   class CodeInfo implements CompilationUnit.CodeInfo {
+
+    @Override public CodeInfo alloc(short max_stack, short max_locals) { return this; }
+    @Override public Code code() { return null; }
+    @Override public Catch exceptions() { return null; }
+    @Override public Variable variables() { return null; }
+
     @Override public CodeInfo StackMapTable() { return this; }
     @Override public CodeInfo LineNumberTable() { return this; }
     @Override public CodeInfo LocalVariableTable() { return this; }

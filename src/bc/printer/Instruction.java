@@ -200,19 +200,19 @@ final class Instruction {
       case OP_invokevirtual   -> i_2c           ( "invokevirtual"   ); // b6  (2)  cp.index
       case OP_invokespecial   -> i_2c           ( "invokespecial"   ); // b7  (2)  cp.index
       case OP_invokestatic    -> i_2c           ( "invokestatic"    ); // b8  (2)  cp.index
-      case OP_invokeinterface -> i_2c_1d_0      ( "invokeinterface" ); // b9  (2,1,0)  index, count, 0
-      case OP_invokedynamic   -> i_2c_0_0       ( "invokedynamic"   ); // ba  (2,0,0)  index, 0, 0
+      case OP_invokeinterface -> i_2c_1d_0      ( "invokeinterface" ); // b9  (2,1,0)  cp.index, count, 0
+      case OP_invokedynamic   -> i_2c_0_0       ( "invokedynamic"   ); // ba  (2,0,0)  cp.index, 0, 0
       case OP_new             -> i_2c           ( "new"             ); // bb  (2)  cp.index
       case OP_newarray        -> i_1t           ( "newarray"        ); // bc  (1)  atype
       case OP_anewarray       -> i_2c           ( "anewarray"       ); // bd  (2)  cp.index
       case OP_arraylength     -> i_             ( "arraylength"     ); // be
       case OP_athrow          -> i_             ( "athrow"          ); // bf
       case OP_checkcast       -> i_2c           ( "checkcast"       ); // c0  (2)  cp.index
-      case OP_instanceof      -> i_2c           ( "instanceof"      ); // cp1  (2)  cp.index
-      case OP_monitorenter    -> i_             ( "monitorenter"    ); // cp2
+      case OP_instanceof      -> i_2c           ( "instanceof"      ); // c1  (2)  cp.index
+      case OP_monitorenter    -> i_             ( "monitorenter"    ); // c2
       case OP_monitorexit     -> i_             ( "monitorexit"     ); // c3
-      case OP_wide            -> i_1w_2c_v      ( "wide"            ); // c4  (1,2 | 1,2,2) opcode, index | iinc, index, count
-      case OP_multianewarray  -> i_2c_1d        ( "multianewarray"  ); // c5  (2,1)  index, dimensions
+      case OP_wide            -> i_1w_2c_v      ( "wide"            ); // c4  (1,2 | 1,2,2)  opcode, cp.index | iinc, cp.index, count
+      case OP_multianewarray  -> i_2c_1d        ( "multianewarray"  ); // c5  (2,1)  cp.index, dimensions
       case OP_ifnull          -> i_2j           ( "ifnull"          ); // c6  (2)  branch
       case OP_ifnonnull       -> i_2j           ( "ifnonnull"       ); // c7  (2)  branch
       case OP_goto_w          -> i_4j           ( "goto_w"          ); // c8  (4)  branch

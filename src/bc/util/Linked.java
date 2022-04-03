@@ -5,10 +5,10 @@ import java.util.NoSuchElementException;
 
 abstract class Linked<E> implements Iterable<E> {
 
-  protected int size = 0;
-  protected Object[] head = null;
+  protected class Node { Node next; E item; }
 
-  protected static final int NEXT = 0, ITEM = 1;
+  protected int size = 0;
+  protected Node head = null;
 
   public int size() {
     return size;
@@ -23,29 +23,27 @@ abstract class Linked<E> implements Iterable<E> {
     size = 0;
   }
 
-  @SuppressWarnings("unchecked")
   public E peek() {
-    return head != null ? (E) head[ITEM] : null;
+    return head != null ? head.item : null;
   }
 
   @Override
   public Iterator<E> iterator() {
     return new Iterator<>() {
-      Object[] previous, current, next = head;
+      Node previous, current, node = head;
 
       @Override
       public boolean hasNext() {
-        return next != null;
+        return node != null;
       }
 
-      @SuppressWarnings("unchecked")
       @Override
       public E next() {
         if (hasNext()) {
           previous = current;
-          current = next;
-          next = (Object[]) next[NEXT];
-          return (E) current[ITEM];
+          current = node;
+          node = node.next;
+          return current.item;
         }
         throw new NoSuchElementException();
       }
@@ -56,12 +54,12 @@ abstract class Linked<E> implements Iterable<E> {
           throw new IllegalStateException();
         }
         if (previous != null) {
-          previous[NEXT] = current[NEXT];
+          previous.next = current.next;
         } else {
           assert current == head;
-          head = next;
+          head = node;
         }
-        current[NEXT] = null;
+        current.next = null;
       }
 
     };

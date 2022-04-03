@@ -657,7 +657,7 @@ public class Print { // javap
    */
   void ed(Module a) {
     f("%s %s\n", P, a);
-    // TODO: print requires[], exports[], opens[], uses_index[], provides[]
+    // TODO: print requires[], exports[], opens[], uses[], provides[]
   }
 
   /**
