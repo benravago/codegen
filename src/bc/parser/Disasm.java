@@ -4,8 +4,6 @@ import bc.parser.Bytecode.Span;
 import bc.ClassFile.Opcode;
 import static bc.JVMS.*;
 
-// TODO: mark 'index' as 'cp.index' or 'lv.index'
-
 class Disasm {
 
   static Opcode decode(Span a, int base) {
@@ -33,7 +31,7 @@ class Disasm {
            -> a.u2(); // 13-14 (2) cp.index
 
       case OP_iload, OP_lload, OP_fload, OP_dload, OP_aload
-           -> a.u1(); // 15-19 (1) lva.index
+           -> a.u1(); // 15-19 (1) lv.index
 
       case OP_iload_0, OP_iload_1, OP_iload_2, OP_iload_3,
            OP_lload_0, OP_lload_1, OP_lload_2, OP_lload_3,
@@ -47,7 +45,7 @@ class Disasm {
            -> null; // 2e-35
 
       case OP_istore, OP_lstore, OP_fstore, OP_dstore, OP_astore
-           -> a.u1(); // 36-3a (1) lva.index
+           -> a.u1(); // 36-3a (1) lv.index
 
       case OP_istore_0, OP_istore_1, OP_istore_2, OP_istore_3,
            OP_lstore_0, OP_lstore_1, OP_lstore_2, OP_lstore_3,
@@ -83,7 +81,7 @@ class Disasm {
            -> null; // 78-83
 
       case OP_iinc
-           -> new Object[]{ a.u1(), a.u1() }; // 84 (1,1) lva.index, const
+           -> new Object[]{ a.u1(), a.u1() }; // 84 (1,1) lv.index, const
 
       case OP_i2l, OP_i2f, OP_i2d,
            OP_l2i, OP_l2f, OP_l2d,
@@ -105,7 +103,7 @@ class Disasm {
       case OP_goto, OP_jsr
            -> a.u2(); // a7-a8 (2) branch
       case OP_ret
-           -> a.u1(); // a9 (1) lva.index
+           -> a.u1(); // a9 (1) lv.index
 
       case OP_tableswitch -> {
              var pad = pc % 4;
