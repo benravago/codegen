@@ -139,7 +139,7 @@ abstract class Instruction {
   public Code _lor                             () { return i_             ( OP_lor                   ); } // 81
   public Code _ixor                            () { return i_             ( OP_ixor                  ); } // 82
   public Code _lxor                            () { return i_             ( OP_lxor                  ); } // 83
-  public Code _iinc            (Object c, byte d) { return i_1c_1d        ( OP_iinc, c, d            ); } // 84  (1,1)  cp.index, const
+  public Code _iinc            (Object v, byte d) { return i_1v_1d        ( OP_iinc, v, d            ); } // 84  (1,1)  lv.index, const
   public Code _i2l                             () { return i_             ( OP_i2l                   ); } // 85
   public Code _i2f                             () { return i_             ( OP_i2f                   ); } // 86
   public Code _i2d                             () { return i_             ( OP_i2d                   ); } // 87
@@ -218,12 +218,12 @@ abstract class Instruction {
   abstract Code i_2s           (byte o, short s);            //  (2)  short
   abstract Code i_1c           (byte o, Object c);           //  (1)  cp.index
   abstract Code i_2c           (byte o, Object c);           //  (2)  cp.index
+  abstract Code i_2c_1d        (byte o, Object c, byte d);   //  (2,1)  cp.index, const
   abstract Code i_1v           (byte o, Object v);           //  (1)  lv.index
+  abstract Code i_1v_1d        (byte o, Object v, byte d);   //  (1,1)  lv.index, const
+  abstract Code i_1t           (byte o, byte t);             //  (1)  atype
   abstract Code i_2j           (byte o, Object j);           //  (2)  branch
   abstract Code i_4j           (byte o, Object j);           //  (4)  branch
-  abstract Code i_1t           (byte o, byte t);             //  (1)  atype
-  abstract Code i_1c_1d        (byte o, Object c, byte d);   //  (1,1)  cp.index, const
-  abstract Code i_2c_1d        (byte o, Object c, byte d);   //  (2,1)  cp.index, const
   abstract Code i_2c_1d_0      (byte o, Object c, byte d);   //  (2,1,0)  cp.index, count, 0
   abstract Code i_2c_0_0       (byte o, Object c);           //  (2,0,0)  cp.index, 0, 0
   abstract Code i_p_4d_4d_4d_v (byte o, Object...a);         //  (0-3,4,4,4,...) padding, default, low, high, jump offsets

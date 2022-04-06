@@ -114,10 +114,10 @@ public final class Bytecode implements bc.ClassFile {
   }
 
   /**
-   * cp_info {
-   *  u1 tag;
-   *  u1 info[];
-   * }
+   *  cp_info {
+   *    u1 tag;
+   *    u1 info[];
+   *  }
    */
   CP.Info cp_info(int i) {
     var c = cache[i];
@@ -132,13 +132,13 @@ public final class Bytecode implements bc.ClassFile {
   record Nil(byte tag, short index) implements CP.Info {}
 
   /**
-   * field_info {
-  u2             access_flags;
-  u2             name_index;
-  u2             descriptor_index;
-  u2             attributes_count;
-  attribute_info attribute_list[attributes_count];
- }
+   *  field_info {
+   *    u2 access_flags;
+   *    u2 name_index;
+   *    u2 descriptor_index;
+   *    u2 attributes_count;
+   *    attribute_info attribute_list[attributes_count];
+   *  }
    */
   FieldInfo field_info(int[] attr) {
     var a = span( attr[0]-8, attr[0] );
@@ -146,13 +146,13 @@ public final class Bytecode implements bc.ClassFile {
   }
 
   /**
-   * method_info {
-  u2             access_flags;
-  u2             name_index;
-  u2             descriptor_index;
-  u2             attributes_count;
-  attribute_info attribute_list[attributes_count];
- }
+   *  method_info {
+   *    u2 access_flags;
+   *    u2 name_index;
+   *    u2 descriptor_index;
+   *    u2 attributes_count;
+   *    attribute_info attribute_list[attributes_count];
+   *  }
    */
   MethodInfo method_info(int[] attr) {
     var a = span( attr[0]-8, attr[0] );
@@ -164,7 +164,6 @@ public final class Bytecode implements bc.ClassFile {
   @Override public CharSequence chars(int off, int len) { return utf8(b,off,len); }
   @Override public int int32(int off) { return i32(b,off); }
   @Override public long int64(int off) { return i64(b,off); }
-
 
   // access Bytecode buffer by range
 

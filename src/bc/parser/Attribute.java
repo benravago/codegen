@@ -33,7 +33,10 @@ class Attribute {
     return z;
   }
 
-  CP.Info cp(Span a)  { return bc.cp_info(a.u2()); }
+  CP.Info cp(Span a)  {
+    var i = a.u2();
+    return i > 0 ? bc.cp_info(i) : null;
+  }
 
   String name(short i) {
     var c = bc.cp_info(i);
@@ -48,11 +51,11 @@ class Attribute {
   }
 
   /**
-   * attribute_info {
-   *   u2 attribute_name_index;
-   *   u4 attribute_length;
-   *   u1 info[attribute_length];
-   * }
+   *  attribute_info {
+   *    u2 attribute_name_index;
+   *    u4 attribute_length;
+   *    u1 info[attribute_length];
+   *  }
    */
   AttributeInfo info(Span a) {
     var i = a.u2();
@@ -124,9 +127,8 @@ class Attribute {
    */
   InnerClasses InnerClasses_attribute(Span span) {
     return new InnerClasses(ATTRIBUTE_InnerClasses,
-      Iter.of( span.u2(), span, a ->
-        new InnerClass( cp(a), cp(a), cp(a), a.u2() )
-    ));
+      Iter.of( span.u2(), span, a -> new InnerClass( cp(a), cp(a), cp(a), a.u2()) )
+    );
   }
 
   /**
@@ -255,7 +257,7 @@ class Attribute {
    */
   MethodParameters MethodParameters_attribute(Span span) {
     return new MethodParameters(ATTRIBUTE_MethodParameters,
-      Iter.of( span.u2(), span, a -> new MethodParameter( cp(a), a.u2() )
+      Iter.of( span.u1(), span, a -> new MethodParameter( cp(a), a.u2() )
     ));
   }
 

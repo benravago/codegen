@@ -147,7 +147,7 @@ final class Instruction {
       case OP_lor             -> i_             ( "lor"             ); // 81
       case OP_ixor            -> i_             ( "ixor"            ); // 82
       case OP_lxor            -> i_             ( "lxor"            ); // 83
-      case OP_iinc            -> i_1c_1d        ( "iinc"            ); // 84  (1,1)  cp.index, const
+      case OP_iinc            -> i_1v_1d        ( "iinc"            ); // 84  (1,1)  lv.index, const
       case OP_i2l             -> i_             ( "i2l"             ); // 85
       case OP_i2f             -> i_             ( "i2f"             ); // 86
       case OP_i2d             -> i_             ( "i2d"             ); // 87
@@ -184,7 +184,7 @@ final class Instruction {
       case OP_if_acmpne       -> i_2j           ( "if_acmpne"       ); // a6  (2)  branch
       case OP_goto            -> i_2j           ( "goto"            ); // a7  (2)  branch
       case OP_jsr             -> i_2j           ( "jsr"             ); // a8  (2)  branch
-      case OP_ret             -> i_1c           ( "ret"             ); // a9  (1)  cp.index
+      case OP_ret             -> i_1v           ( "ret"             ); // a9  (1)  lv.index
       case OP_tableswitch     -> i_p_4d_4d_4d_v ( "tableswitch"     ); // aa  (0-3,4,4,4,...) padding, default, low, high, jump offsets
       case OP_lookupswitch    -> i_p_4d_4d_v    ( "lookupswitch"    ); // ab  (0-3,4,4,...)  padding, default, npairs, match/offset pairs
       case OP_ireturn         -> i_             ( "ireturn"         ); // ac
@@ -224,44 +224,44 @@ final class Instruction {
     return s;
   }
 
-  void i_        (String i) { f( "%04x  %s"            , o.pc(), i                   ); } //  -
-  void i_1b      (String i) { f( "%04x  %s  %d"        , o.pc(), i, u1()             ); } //  (1)  byte
-  void i_2s      (String i) { f( "%04x  %s  %d"        , o.pc(), i, u2()             ); } //  (2)  short
-  void i_1c      (String i) { f( "%04x  %s  %s"        , o.pc(), i, cp(u1())         ); } //  (1)  cp.index
-  void i_2c      (String i) { f( "%04x  %s  %s"        , o.pc(), i, cp(u2())         ); } //  (2)  cp.index
-  void i_1v      (String i) { f( "%04x  %s  %s"        , o.pc(), i, lv(u1())         ); } //  (1)  lv.index
-  void i_2j      (String i) { f( "%04x  %s  0x%04x"    , o.pc(), i, u2()             ); } //  (2)  branch
-  void i_4j      (String i) { f( "%04x  %s  0x%08x"    , o.pc(), i, u4()             ); } //  (4)  branch
-  void i_1t      (String i) { f( "%04x  %s  +%d"       , o.pc(), i, u1()             ); } //  (1)  atype
-  void i_1c_1d   (String i) { f( "%04x  %s  %s, %d"    , o.pc(), i, cp(u1(0)), u1(1) ); } //  (1,1)  cp.index, const
-  void i_2c_1d   (String i) { f( "%04x  %s  %s, %d"    , o.pc(), i, cp(u2(0)), u1(1) ); } //  (2,1)  cp.index, const
-  void i_2c_1d_0 (String i) { f( "%04x  %s  %s, %d, 0" , o.pc(), i, cp(u2(0)), u1(1) ); } //  (2,1,0)  cp.index, count, 0
-  void i_2c_0_0  (String i) { f( "%04x  %s  %s, 0, 0"  , o.pc(), i, cp(u2(0))        ); } //  (2,0,0)  cp.index, 0, 0
+  void i_        (String n) { f( "%04x  %s"            , o.pc(), n                   ); } //  -
+  void i_1b      (String n) { f( "%04x  %s  %d"        , o.pc(), n, u1()             ); } //  (1)  byte
+  void i_2s      (String n) { f( "%04x  %s  %d"        , o.pc(), n, u2()             ); } //  (2)  short
+  void i_1c      (String n) { f( "%04x  %s  %s"        , o.pc(), n, cp(u1())         ); } //  (1)  cp.index
+  void i_2c      (String n) { f( "%04x  %s  %s"        , o.pc(), n, cp(u2())         ); } //  (2)  cp.index
+  void i_2c_1d   (String n) { f( "%04x  %s  %s, %d"    , o.pc(), n, cp(u2(0)), u1(1) ); } //  (2,1)  cp.index, const
+  void i_1v      (String n) { f( "%04x  %s  %s"        , o.pc(), n, lv(u1())         ); } //  (1)  lv.index
+  void i_1v_1d   (String n) { f( "%04x  %s  %s, %d"    , o.pc(), n, lv(u1(0)), u1(1) ); } //  (1,1)  lv.index, const
+  void i_1t      (String n) { f( "%04x  %s  =%d"       , o.pc(), n, u1()             ); } //  (1)  atype
+  void i_2j      (String n) { f( "%04x  %s  >%04x"     , o.pc(), n, u2()             ); } //  (2)  branch
+  void i_4j      (String n) { f( "%04x  %s  >%08x"     , o.pc(), n, u4()             ); } //  (4)  branch
+  void i_2c_1d_0 (String n) { f( "%04x  %s  %s, %d, 0" , o.pc(), n, cp(u2(0)), u1(1) ); } //  (2,1,0)  cp.index, count, 0
+  void i_2c_0_0  (String n) { f( "%04x  %s  %s, 0, 0"  , o.pc(), n, cp(u2(0))        ); } //  (2,0,0)  cp.index, 0, 0
 
-  void i_p_4d_4d_4d_v(String ins) {
+  void i_p_4d_4d_4d_v(String n) {
     var v = (Integer[])o.args();
-    f("%04x  %s  %d,", o.pc(), ins, v[0] ); // pc, op, padding
+    f("%04x  %s  %d,", o.pc(), n, v[0] ); // pc, op, padding
     for (int i = 1, m = v.length; i < m; i++) {
       f( " 0x%08x,", v[i] ); // default, low, high, jump offsets
     }
     s.setLength(s.length()-1); // remove trailing ','
   }
 
-  void i_p_4d_4d_v(String ins) {
+  void i_p_4d_4d_v(String n) {
     var v = (Integer[])o.args();
-    f("%04x  %s  %d, 0x%08x, %d,", o.pc(), ins, v[0], v[1], v[2] ); // pc, op, padding, default, npairs
+    f("%04x  %s  %d, 0x%08x, %d,", o.pc(), n, v[0], v[1], v[2] ); // pc, op, padding, default, npairs
     for (int i = 3, m = v.length; i < m;) {
       f( " 0x%08x, 0x%08x,", v[i++], v[i++] ); // match/offset pairs
     }
     s.setLength(s.length()-1); // remove trailing ','
   }
 
-  void i_1w_2c_v(String ins) {
+  void i_1w_2c_v(String n) {
     var i = u1(0);
     if (i == OP_iinc) {
-      f("%04x  %s  %s, %s, %d" , o.pc(), ins, "iinc", cp(u2(1)), u2(2) ); // (1,2,2) 'iinc', cp.index, count
+      f("%04x  %s  %s, %s, %d" , o.pc(), n, "iinc", cp(u2(1)), u2(2) ); // (1,2,2) 'iinc', cp.index, count
     } else {
-      f("%04x  %s  %s, %s" , o.pc(), ins, wide_op(i), cp(u2(1)) ); // (1,2) opcode, cp.index
+      f("%04x  %s  %s, %s" , o.pc(), n, wide_op(i), cp(u2(1)) ); // (1,2) opcode, cp.index
     }
   }
 
