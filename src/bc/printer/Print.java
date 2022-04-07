@@ -372,14 +372,14 @@ public class Print { // javap
   void ed(Code c) {
     f("%s %s\n", P, c);
     f("  instructions:\n");
-    for (var i:c.codes()) f("   %s\n", instruction.format(i));
+    for (var i:c.codes()) f("   %s\n", op.format(i));
     f("  exceptions:\n");
     for (var e:c.exceptions()) f("   %s\n", e);
     f("  attributes:\n");
     attributes(c.attributes(),"  ");
   }
 
-  Instruction instruction = new Instruction();
+  Operation op = new Operation();
 
   /**
    *  StackMapTable_attribute : @ 4.7.4

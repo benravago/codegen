@@ -4,11 +4,13 @@ import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
+import java.util.function.Consumer;
+
 import bc.ClassFile;
 import static bc.ClassFile.*;
 import static bc.JVMS.*;
 
-public class Decode {
+public class Decode { // for bc.builder
 
   public static void main(String...args) throws Exception {
     if (args.length < 1) {
@@ -28,130 +30,183 @@ public class Decode {
   }
 
   PrintStream out;
-  void f(String format, Object... args) { out.format(format,args); }
+  ClassFile cf;
 
   public void decode(byte[] b) {
-    var cf = ClassFile.parse(b);
-                       // magic
-    class_info(cf);    // minor_version, major_version, access_flags, this_class, super_class
-    interfaces(cf);    // interfaces_count, interfaces[interfaces_count]
-    fields(cf);        // fields_count, fields[fields_count]
-    methods(cf);       // methods_count, methods[methods_count]
-    attributes(cf);    // attributes_count, attributes[attributes_count]
-    constant_pool(cf); // constant_pool_count, constant_pool[constant_pool_count-1]
+    cf = ClassFile.parse(b);
+    init();        // magic
+    class_info();  // minor_version, major_version, access_flags, this_class, super_class
+    interfaces();  // interfaces_count, interfaces[interfaces_count]
+    fields();      // fields_count, fields[fields_count]
+    methods();     // methods_count, methods[methods_count]
+    attributes();  // attributes_count, attributes[attributes_count]
+    constants();   // constant_pool_count, constants[constant_pool_count-1]
   }
 
-  void class_info(ClassFile cf) {
-    f("CompilationUnit.of(\"%s\")\n", cf.type() );
-    f("  superType(\"%s\")\n", cf.superType() );
+  void init() {
+    assert cf.magic() == 0xcafebabe;
+    values();
+  }
+
+  /**
+   *  ClassFile: # 4.1
+   */
+  void class_info() {
+    f("CompilationUnit.of(%s)\n", s(cf.type()) );
+    f("  superType(%s)\n", s(cf.superType()) );
     f("  version(%d.%d)\n", cf.major(), cf.minor() );
     f("  flags(0x%04x)\n", cf.flags() );
   }
 
-  void interfaces(ClassFile cf) {
+  void interfaces() {
     var n = cf.interfacesCount();
     if (n < 1) {
       f("# %d interfaces\n", n);
     } else {
       f("  interfaces( #%d\n", n);
-      for (var i:cf.interfaces()) {
-        f("    \"%s\"\n", i);
-      }
+      g(cf.interfaces(), i -> f("    %s\n", s(i)) );
       f("  )\n");
     }
   }
 
-  void fields(ClassFile cf) {
-    var n = cf.fieldsCount();
-    f("# %d fields\n", n);
-    for (var f:cf.fields()) {
-      f("  FieldInfo(\"%s\", \"%s\")\n", f.name(), f.descriptor());
-      f("    flags(0x%04x)\n", f.flags() );
-      p(2);
-      for (var a:f.attributes()) {
-        f("    -> %s\n", a);
-      }
-      p(-2);
-    }
-  }
-
-  void methods(ClassFile cf) {
-    var n = cf.methodsCount();
-    f("# %d methods\n", n);
-    for (var m:cf.methods()) {
-      f("  MethodInfo(\"%s\", \"%s\")\n", m.name(), m.descriptor());
-      f("    flags(0x%04x)\n", m.flags() );
-      p(2);
-      for (var a:m.attributes()) {
-        attribute(a);
-      }
-      p(-2);
-    }
-  }
-
-  void constant_pool(ClassFile cf) {
+  /**
+   *  cp_info : # 4.4
+   *    u1 tag
+   *    u1 info[]
+   */
+  void constants() {
     f("# %d constants\n", cf.constantCount());
-    for (var c:cf.constantPool()) {
-      switch (c.tag()) {
-        case CONSTANT_Utf8 -> ed((Utf8Ref)c);
-          // CONSTANT_Integer -> ed((IntegerRef)c);
-          // CONSTANT_Float -> ed((FloatRef)c);
-          // CONSTANT_Long -> ed((LongRef)c);
-          // CONSTANT_Double -> ed((DoubleRef)c);
-        case CONSTANT_Class -> ed((ClassRef)c);
-          // CONSTANT_String -> ed((StringRef)c);
-          // CONSTANT_Fieldref -> ed((FieldRef)c);
-        case CONSTANT_Methodref -> ed((MethodRef)c);
-          // CONSTANT_InterfaceMethodref -> ed((InterfaceMethodRef)c);
-        case CONSTANT_NameAndType -> ed((NameAndTypeRef)c);
-          // CONSTANT_MethodHandle -> ed((MethodHandleRef)c);
-          // CONSTANT_MethodType -> ed((MethodTypeRef)c);
-          // CONSTANT_Dynamic -> ed((DynamicRef)c);
-          // CONSTANT_InvokeDynamic -> ed((InvokeDynamicRef)c);
-          // CONSTANT_Module -> ed((ModuleRef)c);
-          // CONSTANT_Package -> ed((PackageRef)c);
+    g(cf.constantPool(), this::constant);
+  }
 
-        default -> f("--> %s\n", c);
-      }
+  void constant(CP.Info c) {
+    switch (c.tag()) {
+      case CONSTANT_Utf8 -> ed((CP.Utf8)c);
+        // CONSTANT_Integer -> ed((IntegerRef)c);
+        // CONSTANT_Float -> ed((FloatRef)c);
+        // CONSTANT_Long -> ed((LongRef)c);
+        // CONSTANT_Double -> ed((DoubleRef)c);
+      case CONSTANT_Class -> ed((CP.Class)c);
+        // CONSTANT_String -> ed((StringRef)c);
+      case CONSTANT_Fieldref -> ed((CP.Field)c);
+      case CONSTANT_Methodref -> ed((CP.Method)c);
+        // CONSTANT_InterfaceMethodref -> ed((InterfaceMethodRef)c);
+      case CONSTANT_NameAndType -> ed((CP.NameAndType)c);
+        // CONSTANT_MethodHandle -> ed((MethodHandleRef)c);
+        // CONSTANT_MethodType -> ed((MethodTypeRef)c);
+        // CONSTANT_Dynamic -> ed((DynamicRef)c);
+        // CONSTANT_InvokeDynamic -> ed((InvokeDynamicRef)c);
+        // CONSTANT_Module -> ed((ModuleRef)c);
+        // CONSTANT_Package -> ed((PackageRef)c);
+
+      default -> f("--> %s\n", c);
     }
   }
 
-  void ed(Utf8Ref c) {
-    f("  TODO: %s\n", c);
-  }
-  void ed(ClassRef c) {
-    f("  TODO: %s\n", c);
-  }
-  void ed(MethodRef c) {
-    f("  TODO: %s\n", c);
-  }
-  void ed(NameAndTypeRef c) {
+  /**
+   *  CONSTANT_Class_info : # 4.4.1
+   *    u2 name_index
+   */
+  void ed(CP.Class c) {
     f("  TODO: %s\n", c);
   }
 
-  // void ed(DoubleRef c)          { f("  TODO: %s\n", c); }
-  // void ed(DynamicRef c)         { f("  TODO: %s\n", c); }
-  // void ed(FieldRef c)           { f("  TODO: %s\n", c); }
-  // void ed(FloatRef c)           { f("  TODO: %s\n", c); }
-  // void ed(IntegerRef c)         { f("  TODO: %s\n", c); }
-  // void ed(InterfaceMethodRef c) { f("  TODO: %s\n", c); }
-  // void ed(InvokeDynamicRef c)   { f("  TODO: %s\n", c); }
-  // void ed(LongRef c)            { f("  TODO: %s\n", c); }
-  // void ed(MethodHandleRef c)    { f("  TODO: %s\n", c); }
-  // void ed(MethodTypeRef c)      { f("  TODO: %s\n", c); }
-  // void ed(ModuleRef c)          { f("  TODO: %s\n", c); }
-  // void ed(PackageRef c)         { f("  TODO: %s\n", c); }
-  // void ed(StringRef c)          { f("  TODO: %s\n", c); }
+  // # 4.4.2
+  void ed(CP.Field c) {
+    f("  TODO: %s\n", c);
+  }
 
-  String P = " ";
-  void p(int n) { P = "                     ".substring(0,P.length()+n); }
+  /**
+   *  CONSTANT_Methodref_info : # 4.4.2
+   *    u2 class_index -> Class
+   *    u2 name_and_type_index -> NameAndType
+   */
+  void ed(CP.Method c) {
+    f("  TODO: %s\n", c);
+  }
 
-  void attributes(ClassFile cf) {
-    var n = cf.attributesCount();
-    f("# %d attributes\n", n);
-    for (var a:cf.attributes()) {
-      attribute(a);
+  // void ed(InterfaceMethodRef c) { d("  TODO: %s\n", c); } # 4.4.2
+
+  // void ed(StringRef c) { d("  TODO: %s\n", c); } # 4.4.3
+
+  // void ed(FloatRef c) { d("  TODO: %s\n", c); } # 4.4.4
+  // void ed(IntegerRef c) { d("  TODO: %s\n", c); } # 4.4.4
+
+  // void ed(LongRef c) { d("  TODO: %s\n", c); } # 4.4.5
+  // void ed(DoubleRef c) { d("  TODO: %s\n", c); } # 4.4.5
+
+  /**
+   *  CONSTANT_NameAndType_info : # 4.4.6
+   *    u2 name_index -> Utf8
+   *    u2 descriptor_index -> Utf8
+   */
+  void ed(CP.NameAndType c) {
+    f("  TODO: %s\n", c);
+  }
+
+  /**
+   *  CONSTANT_Utf8_info : # 4.4.7
+   *   u2 length
+   *   u1 bytes[length]
+   */
+  void ed(CP.Utf8 c) {
+    f("  TODO: %s\n", c);
+  }
+
+  // void ed(MethodHandleRef c) { d("  TODO: %s\n", c); } # 4.4.8
+
+  // void ed(MethodTypeRef c) { d("  TODO: %s\n", c); } # 4.4.9
+
+  // void ed(DynamicRef c)  { d("  TODO: %s\n", c); } # 4.4.10
+  // void ed(InvokeDynamicRef c) { d("  TODO: %s\n", c); } # 4.4.10
+
+  // void ed(ModuleRef c) { d("  TODO: %s\n", c); } # 4.4.11
+
+  // void ed(PackageRef c) { d("  TODO: %s\n", c); } # 4.4.12
+
+  /**
+   *  field_info : # 4.5
+   *    u2 access_flags
+   *    u2 name_index
+   *    u2 descriptor_index
+   *    u2 attributes_count
+   *    attribute_info attributes[attributes_count]
+   */
+  void fields() {
+    f("# %d fields\n", cf.fieldsCount());
+    for (var d:cf.fields()) {
+      f("  FieldInfo(%s, %s)\n", s(d.name()), s(d.descriptor()));
+      f("    flags(0x%04x)\n", d.flags() );
+      q(d.attributes(), this::attribute);
     }
+  }
+
+  /**
+   *  method_info : # 4.6
+   *    u2 access_flags
+   *    u2 name_index
+   *    u2 descriptor_index
+   *    u2 attributes_count
+   *    attribute_info attributes[attributes_count]
+   */
+  void methods() {
+    f("# %d methods\n", cf.methodsCount());
+    for (var d:cf.methods()) {
+      f("  MethodInfo(%s, %s)\n", s(d.name()), s(d.descriptor()));
+      f("    flags(0x%04x)\n", d.flags() );
+      q(d.attributes(), this::attribute);
+    }
+  }
+
+  /**
+   * attribute_info : # 4.7
+   *   u2 attribute_name_index
+   *   u4 attribute_length
+   *   u1 info[attribute_length]
+   */
+  void attributes() {
+    f("# %d attributes\n", cf.attributesCount());
+    g(cf.attributes(), this::attribute);
   }
 
   void attribute(AttributeInfo a) {
@@ -170,7 +225,7 @@ public class Decode {
       case ATTRIBUTE_LocalVariableTable -> ed((LocalVariableTable)a);
         // ATTRIBUTE_LocalVariableTypeTable -> ed((LocalVariableTypeTable)a);
         // ATTRIBUTE_Deprecated -> ed((Deprecated)a);
-        // ATTRIBUTE_RuntimeVisibleAnnotations -> ed((RuntimeVisibleAnnotations)a);
+      case ATTRIBUTE_RuntimeVisibleAnnotations -> ed((RuntimeVisibleAnnotations)a);
         // ATTRIBUTE_RuntimeInvisibleAnnotations -> ed((RuntimeInvisibleAnnotations)a);
         // ATTRIBUTE_RuntimeVisibleParameterAnnotations -> ed((RuntimeVisibleParameterAnnotations)a);
         // ATTRIBUTE_RuntimeInvisibleParameterAnnotations -> ed((RuntimeInvisibleParameterAnnotations)a);
@@ -191,24 +246,10 @@ public class Decode {
     }
   }
 
-  /**
-   *  Signature_attribute :
-   *    u2 signature_index
-   */
-  void ed(Signature a) {
-    f("%s Signature(\"%s\")\n", P, a.signature());
-  }
+  // void ed(ConstantValue a) { d("%s TODO: %s\n", P, a); } # 4.7.2
 
   /**
-   *  SourceFile_attribute :
-   *    u2 sourcefile_index
-   */
-  void ed(SourceFile a) {
-    f("%s SourceFile(\"%s\")\n", P, a.sourcefile());
-  }
-
-  /**
-   *  Code_attribute :
+   *  Code_attribute : # 4.7.3
    *    u2 max_stack
    *    u2 max_locals
    *    u4 code_length
@@ -227,35 +268,71 @@ public class Decode {
     p(+2);
     f("%s stack(%d)\n", P, c.maxStack());
     f("%s locals(%d)\n", P, c.maxLocals());
-    f("%s # instructions\n", P);
-    f("%s # exceptions\n", P);
-    f("%s # attributes\n", P);
-    p(+2);
-    for (var a:c.attributes()) {
-      attribute(a);
-    }
-    p(-4);
+    instructions(c);
+    exceptions(c);
+    attributes(c);
+    p(-2);
   }
 
-  // Code()
-  //   stack(n)
-  //   locals(n)
-  //   _{instr}...
+  Operation op = new Operation();
 
+  void instructions(Code c) {
+    f("%s # instructions\n", P);
+    q(c.codes(), o -> f("%s %s\n", P, op.format(o)) );
+  }
+
+  void exceptions(Code c) {
+    f("%s # exceptions\n", P);
+    q(c.exceptions(), e -> f("%s --> %s\n", P, e) );
+  }
+
+  void attributes(Code c) {
+    f("%s # attributes\n", P);
+    q(c.attributes(), this::attribute);
+  }
+
+  // void ed(StackMapTable a) { d("%s TODO: %s\n", P, a); } # 4.7.4
+
+  // void ed(Exceptions a) { d("%s TODO: %s\n", P, a); } # 4.7.5
+
+  // void ed(InnerClasses a) { d("%s TODO: %s\n", P, a); } # 4.7.6
+
+  // void ed(EnclosingMethod a) { d("%s TODO: %s\n", P, a); } # 4.7.7
+
+  // void ed(Synthetic a) { d("%s TODO: %s\n", P, a); } # 4.7.8
 
   /**
-   *  LineNumberTable_attribute :
+   *  Signature_attribute : # 4.7.9
+   *    u2 signature_index
+   */
+  void ed(Signature a) {
+    f("%s Signature(%s)\n", P, s(a.signature()));
+  }
+
+  /**
+   *  SourceFile_attribute : # 4.7.10
+   *    u2 sourcefile_index
+   */
+  void ed(SourceFile a) {
+    f("%s SourceFile(%s)\n", P, s(a.sourcefile()));
+  }
+
+  // void ed(SourceDebugExtension a) { d("%s TODO: %s\n", P, a); } # 4.7.11
+
+  /**
+   *  LineNumberTable_attribute : # 4.7.12
    *    u2 line_number_table_length
    *    { u2 start_pc
    *      u2 line_number
    *    } line_number_table[line_number_table_length]
    */
-  void ed(LineNumberTable a) {
-    f("%s TODO: %s\n", P, a);
+  void ed(LineNumberTable t) {
+    f("%s LineNumberTable()\n", P);
+    q(t.lines(), l -> f("%s %04x  @%d\n", P, l.pc(), l.n()) );
   }
 
   /**
-   *  LocalVariableTable_attribute :
+   *  LocalVariableTable_attribute : # 4.7.13
    *    u2 local_variable_table_length
    *    { u2 start_pc
    *      u2 length
@@ -264,34 +341,99 @@ public class Decode {
    *      u2 index
    *    } local_variable_table[local_variable_table_length]
    */
-  void ed(LocalVariableTable a) {
+  void ed(LocalVariableTable t) {
+    f("%s LocalVariableTable()\n", P);
+    q(t.locals(), l -> f("%s %04x  $%d  %d %s %s\n", P, l.pc(), l.index(), l.len(), s(l.name()), s(l.descriptor()) ) );
+  }
+
+  // void ed(LocalVariableTypeTable a) { d("%s TODO: %s\n", P, a); } # 4.7.14
+
+  // void ed(Deprecated a) { d("%s TODO: %s\n", P, a); } # 4.7.15
+
+  // # 4.7.16
+  void ed(RuntimeVisibleAnnotations a) {
     f("%s TODO: %s\n", P, a);
   }
 
-  // void ed(AnnotationDefault a)                    { f("%s TODO: %s\n", P, a); }
-  // void ed(BootstrapMethods a)                     { f("%s TODO: %s\n", P, a); }
-  // void ed(ConstantValue a)                        { f("%s TODO: %s\n", P, a); }
-  // void ed(Deprecated a)                           { f("%s TODO: %s\n", P, a); }
-  // void ed(EnclosingMethod a)                      { f("%s TODO: %s\n", P, a); }
-  // void ed(Exceptions a)                           { f("%s TODO: %s\n", P, a); }
-  // void ed(InnerClasses a)                         { f("%s TODO: %s\n", P, a); }
-  // void ed(LocalVariableTypeTable a)               { f("%s TODO: %s\n", P, a); }
-  // void ed(MethodParameters a)                     { f("%s TODO: %s\n", P, a); }
-  // void ed(Module a)                               { f("%s TODO: %s\n", P, a); }
-  // void ed(ModuleMainClass a)                      { f("%s TODO: %s\n", P, a); }
-  // void ed(ModulePackages a)                       { f("%s TODO: %s\n", P, a); }
-  // void ed(NestHost a)                             { f("%s TODO: %s\n", P, a); }
-  // void ed(NestMembers a)                          { f("%s TODO: %s\n", P, a); }
-  // void ed(PermittedSubclasses a)                  { f("%s TODO: %s\n", P, a); }
-  // void ed(Record a)                               { f("%s TODO: %s\n", P, a); }
-  // void ed(RuntimeInvisibleAnnotations a)          { f("%s TODO: %s\n", P, a); }
-  // void ed(RuntimeInvisibleParameterAnnotations a) { f("%s TODO: %s\n", P, a); }
-  // void ed(RuntimeInvisibleTypeAnnotations a)      { f("%s TODO: %s\n", P, a); }
-  // void ed(RuntimeVisibleAnnotations a)            { f("%s TODO: %s\n", P, a); }
-  // void ed(RuntimeVisibleParameterAnnotations a)   { f("%s TODO: %s\n", P, a); }
-  // void ed(RuntimeVisibleTypeAnnotations a)        { f("%s TODO: %s\n", P, a); }
-  // void ed(SourceDebugExtension a)                 { f("%s TODO: %s\n", P, a); }
-  // void ed(StackMapTable a)                        { f("%s TODO: %s\n", P, a); }
-  // void ed(Synthetic a)                            { f("%s TODO: %s\n", P, a); }
+  // void ed(RuntimeInvisibleAnnotations a) { d("%s TODO: %s\n", P, a); } # 4.7.17
 
+  // void ed(RuntimeVisibleParameterAnnotations a) { d("%s TODO: %s\n", P, a); } # 4.7.18
+
+  // void ed(RuntimeInvisibleParameterAnnotations a) { d("%s TODO: %s\n", P, a); } # 4.7.19
+
+  // void ed(RuntimeVisibleTypeAnnotations a) { d("%s TODO: %s\n", P, a); } # 4.7.20
+
+  // void ed(RuntimeInvisibleTypeAnnotations a) { d("%s TODO: %s\n", P, a); } # 4.7.21
+
+  // void ed(AnnotationDefault a) { d("%s TODO: %s\n", P, a); } # 4.7.22
+
+  // void ed(BootstrapMethods a) { d("%s TODO: %s\n", P, a); } # 4.7.23
+
+  // void ed(MethodParameters a) { d("%s TODO: %s\n", P, a); } # 4.7.24
+
+  // void ed(Module a) { d("%s TODO: %s\n", P, a); } # 4.7.25
+
+  // void ed(ModulePackages a) { d("%s TODO: %s\n", P, a); } # 4.7.26
+
+  // void ed(ModuleMainClass a) { d("%s TODO: %s\n", P, a); } # 4.7.27
+
+  // void ed(NestHost a) { d("%s TODO: %s\n", P, a); } # 4.7.28
+
+  // void ed(NestMembers a) { d("%s TODO: %s\n", P, a); } # 4.7.29
+
+  // void ed(Record a) { d("%s TODO: %s\n", P, a); } # 4.7.30
+
+  // void ed(PermittedSubclasses a) { d("%s TODO: %s\n", P, a); } # 4.7.31
+
+
+  String P = " ";
+
+  void p(int n) { P = "                     ".substring(0,P.length()+n); }
+  <T> void q(Iterable<T> i, Consumer<T> c) { p(+2); for (var t:i) c.accept(t); p(-2); }
+
+  void f(String format, Object... args) { out.format(format,args); }
+  <T> void g(Iterable<T> i, Consumer<T> c) { for (var t:i) c.accept(t); }
+
+  Object[] V;
+
+  void values() {
+    V = new Object[cf.constantCount()];
+    for (var i:cf.constantPool()) {
+      V[i.index()] = switch(i.tag()) {
+
+        case CONSTANT_Utf8 -> "\"" + cf.chars(((CP.Utf8)i).offset(),((CP.Utf8)i).length()) + "\"";
+
+        case CONSTANT_Integer -> cf.int32(((CP.Integer)i).offset());
+        case CONSTANT_Float -> Float.floatToIntBits(cf.int32(((CP.Float)i).offset()));
+
+        case CONSTANT_Long -> cf.int64(((CP.Long)i).offset());
+        case CONSTANT_Double -> Double.longBitsToDouble(cf.int64(((CP.Double)i).offset()));
+
+        default -> null;
+      };
+    }
+  }
+
+  String s(CP.Info i) {
+    return String.valueOf(switch (i.tag()) {
+
+      case CONSTANT_Class -> V[((CP.Class)i).name()];
+      case CONSTANT_Module -> V[((CP.Module)i).name()];
+      case CONSTANT_Package -> V[((CP.Package)i).name()];
+
+      case CONSTANT_MethodType -> V[((CP.MethodType)i).descriptor()];
+
+      case CONSTANT_String -> V[((CP.String)i).string()];
+
+      case CONSTANT_Fieldref, CONSTANT_Methodref, CONSTANT_InterfaceMethodref,
+           CONSTANT_NameAndType, CONSTANT_MethodHandle,      // TODO:
+           CONSTANT_Dynamic, CONSTANT_InvokeDynamic -> null; // multiple values
+
+      default -> V[i.index()];
+    });
+  }
+
+  String s(short i) { return String.valueOf(V[i]); }
 }
+/*
+*/

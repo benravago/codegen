@@ -1,28 +1,19 @@
 package bc.printer;
 
 import java.util.Formatter;
-import java.util.Formattable;
-import java.util.function.IntFunction;
 
 import bc.ClassFile.Opcode;
 import static bc.JVMS.*;
 
-class Instruction implements Formattable {
+final class Operation {
 
-  Instruction(IntFunction<CharSequence> constantPoolResolver, IntFunction<CharSequence> localVariableResolver, IntFunction<CharSequence> codeOffsetResolver) {
-    cpResolver = constantPoolResolver;
-    lvResolver = localVariableResolver;
-    jpResolver = codeOffsetResolver;
-  }
+  StringBuilder s = new StringBuilder();
+  Formatter f = new Formatter(s);
+  Opcode o;
 
-  Opcode o;       // injected by format()
-  Formatter f;    // injected by formatTo()
-
-  Formattable format(Opcode opcode) { o = opcode; return this; }
-
-  @Override
-  public void formatTo(Formatter formatter, int flags, int width, int precision) {
-    f = formatter;
+  CharSequence format(Opcode opcode) {
+    o = opcode;
+    s.setLength(0);
     switch (o.op()) {
       case OP_nop             -> i_             ( "nop"             ); // 00
       case OP_aconst_null     -> i_             ( "aconst_null"     ); // 01
@@ -230,33 +221,69 @@ class Instruction implements Formattable {
       case OP_impdep1         -> i_             ( "impdep1"         ); // fe
       case OP_impdep2         -> i_             ( "impdep2"         ); // ff
     }
+    return s;
   }
 
-  void i_        (String n) { f.format( "_%s"             , n                   ); } //  -
-  void i_1b      (String n) { f.format( "_%s((byte)%d)"   , n, u1()             ); } //  (1)  byte
-  void i_2s      (String n) { f.format( "_%s((short)%d)"  , n, u2()             ); } //  (2)  short
-  void i_1c      (String n) { f.format( "_%s(%s)"         , n, cp(u1())         ); } //  (1)  cp.index
-  void i_2c      (String n) { f.format( "_%s(%s)"         , n, cp(u2())         ); } //  (2)  cp.index
-  void i_2c_1d   (String n) { f.format( "_%s(%s,%d)"      , n, cp(u2(0)), u1(1) ); } //  (2,1)  cp.index, const
-  void i_1v      (String n) { f.format( "_%s(%s)"         , n, lv(u1())         ); } //  (1)  lv.index
-  void i_1v_1d   (String n) { f.format( "_%s(%s,%d)"      , n, lv(u1(0)), u1(1) ); } //  (1,1)  lv.index, const
-  void i_1t      (String n) { f.format( "_%s(+%d)"        , n, u1()             ); } //  (1)  atype
-  void i_2j      (String n) { f.format( "_%s(0x%04x)"     , n, jp(u2())         ); } //  (2)  branch
-  void i_4j      (String n) { f.format( "_%s(0x%08x)"     , n, jp(u4())         ); } //  (4)  branch
-  void i_2c_1d_0 (String n) { f.format( "_%s(%s,%d)"      , n, cp(u2(0)), u1(1) ); } //  (2,1,0)  cp.index, count, 0
-  void i_2c_0_0  (String n) { f.format( "_%s(%s)"         , n, cp(u2(0))        ); } //  (2,0,0)  cp.index, 0, 0
+  void i_        (String n) { f( "%04x  %s"            , o.pc(), n                   ); } //  -
+  void i_1b      (String n) { f( "%04x  %s  %d"        , o.pc(), n, u1()             ); } //  (1)  byte
+  void i_2s      (String n) { f( "%04x  %s  %d"        , o.pc(), n, u2()             ); } //  (2)  short
+  void i_1c      (String n) { f( "%04x  %s  %s"        , o.pc(), n, cp(u1())         ); } //  (1)  cp.index
+  void i_2c      (String n) { f( "%04x  %s  %s"        , o.pc(), n, cp(u2())         ); } //  (2)  cp.index
+  void i_2c_1d   (String n) { f( "%04x  %s  %s, %d"    , o.pc(), n, cp(u2(0)), u1(1) ); } //  (2,1)  cp.index, const
+  void i_1v      (String n) { f( "%04x  %s  %s"        , o.pc(), n, lv(u1())         ); } //  (1)  lv.index
+  void i_1v_1d   (String n) { f( "%04x  %s  %s, %d"    , o.pc(), n, lv(u1(0)), u1(1) ); } //  (1,1)  lv.index, const
+  void i_1t      (String n) { f( "%04x  %s  =%d"       , o.pc(), n, u1()             ); } //  (1)  atype
+  void i_2j      (String n) { f( "%04x  %s  >%04x"     , o.pc(), n, u2()             ); } //  (2)  branch
+  void i_4j      (String n) { f( "%04x  %s  >%08x"     , o.pc(), n, u4()             ); } //  (4)  branch
+  void i_2c_1d_0 (String n) { f( "%04x  %s  %s, %d, 0" , o.pc(), n, cp(u2(0)), u1(1) ); } //  (2,1,0)  cp.index, count, 0
+  void i_2c_0_0  (String n) { f( "%04x  %s  %s, 0, 0"  , o.pc(), n, cp(u2(0))        ); } //  (2,0,0)  cp.index, 0, 0
 
   void i_p_4d_4d_4d_x(String n) {
-    // TODO:
+    var v = (Integer[])o.args();
+    f("%04x  %s  %d,", o.pc(), n, v[0] ); // pc, op, padding
+    for (int i = 1, m = v.length; i < m; i++) {
+      f( " 0x%08x,", v[i] ); // default, low, high, jump offsets
+    }
+    s.setLength(s.length()-1); // remove trailing ','
   }
 
   void i_p_4d_4d_x(String n) {
-    // TODO:
+    var v = (Integer[])o.args();
+    f("%04x  %s  %d, 0x%08x, %d,", o.pc(), n, v[0], v[1], v[2] ); // pc, op, padding, default, npairs
+    for (int i = 3, m = v.length; i < m;) {
+      f( " 0x%08x, 0x%08x,", v[i++], v[i++] ); // match/offset pairs
+    }
+    s.setLength(s.length()-1); // remove trailing ','
   }
 
   void i_1w_2c_x(String n) {
-    // TODO:
+    var i = u1(0);
+    if (i == OP_iinc) {
+      f("%04x  %s  %s, %s, %d" , o.pc(), n, "iinc", cp(u2(1)), u2(2) ); // (1,2,2) 'iinc', cp.index, count
+    } else {
+      f("%04x  %s  %s, %s" , o.pc(), n, wide_op(i), cp(u2(1)) ); // (1,2) opcode, cp.index
+    }
   }
+
+  CharSequence wide_op(byte i) {
+    return switch(i) {
+      case OP_iload  -> "iload";
+      case OP_fload  -> "fload";
+      case OP_aload  -> "aload";
+      case OP_lload  -> "lload";
+      case OP_dload  -> "dload";
+      case OP_istore -> "istore";
+      case OP_fstore -> "fstore";
+      case OP_astore -> "astore";
+      case OP_lstore -> "lstore";
+      case OP_dstore -> "dstore";
+      case OP_ret    -> "ret";
+      default -> throw new IllegalArgumentException("wide_op="+i);
+    };
+  }
+
+  void f(String format, Object... args) { f.format(format,args); }
+
 
   Byte    u1() { return (Byte)   o.args(); }
   Short   u2() { return (Short)  o.args(); }
@@ -265,81 +292,7 @@ class Instruction implements Formattable {
   Byte    u1(int i) { return (Byte) ((Object[])o.args())[i]; }
   Short   u2(int i) { return (Short)((Object[])o.args())[i]; }
 
-  CharSequence cp(int i) { return cpResolver.apply(i); }
-  CharSequence lv(int i) { return lvResolver.apply(i); }
-  CharSequence jp(int i) { return jpResolver.apply(i); }
-
-  final IntFunction<CharSequence> cpResolver;
-  final IntFunction<CharSequence> lvResolver;
-  final IntFunction<CharSequence> jpResolver;
+  CharSequence cp(int i) { return "#"+i; }
+  CharSequence lv(int i) { return "$"+i; }
 
 }
-/*
--  void i_p_4d_4d_4d_v(Opcode o, String ins) {
--    var v = (Integer[])o.args();
--    f.format("%04x  %s  %d,", o.pc(), ins, v[0] ); // pc, op, padding
--    for (int i = 1, m = v.length; i < m; i++) {
--      f.format( " 0x%08x,", v[i] ); // default, low, high, jump offsets
--    }
--    // s.setLength(s.length()-1); // remove trailing ','
--  }
--
--  void i_p_4d_4d_v(Opcode o, String ins) {
--    var v = (Integer[])o.args();
--    f.format("%04x  %s  %d, 0x%08x, %d,", o.pc(), ins, v[0], v[1], v[2] ); // pc, op, padding, default, npairs
--    for (int i = 3, m = v.length; i < m;) {
--      f.format( " 0x%08x, 0x%08x,", v[i++], v[i++] ); // match/offset pairs
--    }
--    // s.setLength(s.length()-1); // remove trailing ','
--  }
--
--  void i_1w_2c_v(Opcode o, String ins) {
--    var i = u1(o,0);
--    if (i == OP_iinc) {
--      f.format("%04x  %s  %s, %s, %d" , o.pc(), ins, "iinc", c2(o,1), u2(o,2) ); // (1,2,2) 'iinc', cp.index, count
--    } else {
--      f.format("%04x  %s  %s, %s" , o.pc(), ins, wide_op(i), c2(o,1) ); // (1,2) opcode, cp.index
--    }
--  }
--
--  CharSequence wide_op(byte i) {
--    return switch(i) {
--      case OP_iload  -> "iload";
--      case OP_fload  -> "fload";
--      case OP_aload  -> "aload";
--      case OP_lload  -> "lload";
--      case OP_dload  -> "dload";
--      case OP_istore -> "istore";
--      case OP_fstore -> "fstore";
--      case OP_astore -> "astore";
--      case OP_lstore -> "lstore";
--      case OP_dstore -> "dstore";
--      case OP_ret    -> "ret";
--      default -> throw new IllegalArgumentException("wide_op="+i);
--    };
--  }
-
-  Code()
-    $("name","type")          // offset: #index [length] -> local variable
-    $("label")                // offset:                 -> branch
-    _instruction ( x, y, z )  // offset:                 -> opcode
-
-
-  //   stack(n)
-  //   locals(n)
-  //   _{instr}...
-
-  // Code()
-  //   stack(n)
-  //   locals(n)
-  //   Instructions:
-  //     offset  instr  args, ...
-  //   LineNumberTable()
-  //     offset  line.      -> line(n,offset)
-  //   LocalVariableTable:
-  //     offset  index. length "name" "descriptor" -> local(n,offset,length,"name","descriptor")
-
-
-
-
-*/
