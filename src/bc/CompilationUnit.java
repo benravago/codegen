@@ -74,9 +74,7 @@ public interface CompilationUnit {
 
     CodeInfo alloc(short max_stack, short max_locals);
 
-    Code  code();
-    Catch  exceptions();
-    Variable  variables();
+    Code  code(); // code[] and exception_table[]
 
     CodeInfo  StackMapTable ();
     CodeInfo  LineNumberTable ();
@@ -85,6 +83,7 @@ public interface CompilationUnit {
     CodeInfo  RuntimeVisibleTypeAnnotations ();
     CodeInfo  RuntimeInvisibleTypeAnnotations ();
   }
+
 
   interface Code {
 
@@ -294,15 +293,12 @@ public interface CompilationUnit {
     Code _impdep1                         (); // fe
     Code _impdep2                         (); // ff
 
-    Code $(String s);
-  }
+    Code $(int n);                            // line number and/or jump offset label
 
-  interface Catch {
-    Catch add(Object type, Object...args); // start_pc, end_pc, handler_pc
-  }
+    Code $start(int n);
+    Code $end(int n);
+    Code $handle(int n, Object type);
 
-  interface Variable {
-    Variable add(Object type, Object...args); // length, index, name_index, descriptor_index,
   }
 
   interface RecordInfo {
@@ -313,17 +309,5 @@ public interface CompilationUnit {
     RecordInfo  RuntimeInvisibleTypeAnnotations ();
   }
 
-  // factory
-
-  static CompilationUnit build(float v) { // major_version[.minor_version]
-    try {
-      return (CompilationUnit)
-        Class.forName("bc.builder.Bytecode").getConstructor(Float.TYPE).newInstance(v);
-    } catch (Exception e) {
-      throw new UnsupportedOperationException(e);
-    }
-  }
-
 }
-
 

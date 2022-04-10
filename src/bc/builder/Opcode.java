@@ -9,7 +9,7 @@ class Opcode extends Instruction implements Code {
   @Override Code i_2s           (byte o, short s)            { return this; } //  (2)  short
   @Override Code i_1c           (byte o, Object c)           { return this; } //  (1)  cp.index
   @Override Code i_2c           (byte o, Object c)           { return this; } //  (2)  cp.index
-  @Override Code i_2c_1d        (byte o, Object c, byte d)   { return this; } //  (2,1)  cp.index, const  
+  @Override Code i_2c_1d        (byte o, Object c, byte d)   { return this; } //  (2,1)  cp.index, const
   @Override Code i_1v           (byte o, Object v)           { return this; } //  (1)  lv.index
   @Override Code i_1v_1d        (byte o, Object v, byte d)   { return this; } //  (1,1)  lv.index, const
   @Override Code i_1t           (byte o, byte t)             { return this; } //  (1)  atype
@@ -21,6 +21,12 @@ class Opcode extends Instruction implements Code {
   @Override Code i_p_4d_4d_v    (byte o, Object...a)         { return this; } //  (0-3,4,4,...)  padding, default, npairs, match/offset pairs
   @Override Code i_1w_2c_v      (byte o, byte w, Object...a) { return this; } //  (1,2 | 1,2,2) opcode, cp.index | iinc, cp.index, count
 
-  @Override Code label(String s) { return this; } // marks a label for jump offsets, etc
+  // other info
+
+  @Override public Code $(int n) { return this; }
+
+  @Override public Code $start(int n) { return this; }
+  @Override public Code $end(int n) { return this; }
+  @Override public Code $handle(int n, Object type) { return this; }
 
 }

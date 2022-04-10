@@ -55,7 +55,7 @@ public class Print { // javap
    *    attribute_info attributes[attributes_count]
    */
   public void print(byte[] b) {
-    cf = ClassFile.parse(b);
+    cf = bc.Bytecode.parse(b);
 
     f("+ magic %08x\n", cf.magic());
     f("+ minor_version %04x\n", cf.minor());
@@ -68,7 +68,7 @@ public class Print { // javap
     f("+ interfaces_count %d\n", cf.interfacesCount());
     interfaces();
     f("+ fields_count %d\n", cf.fieldsCount());
-    //fields();
+    fields();
     f("+ methods_count %d\n", cf.methodsCount());
     methods();
     f("+ attributes_count %d\n", cf.attributesCount());
@@ -372,7 +372,7 @@ public class Print { // javap
   void ed(Code c) {
     f("%s %s\n", P, c);
     f("  instructions:\n");
-    for (var i:c.codes()) f("   %s\n", op.format(i));
+    for (var i:c.codes()) f("   %04x  %s\n", i.pc(), op.format(i));
     f("  exceptions:\n");
     for (var e:c.exceptions()) f("   %s\n", e);
     f("  attributes:\n");

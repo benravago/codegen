@@ -33,29 +33,42 @@ public class Decode { // for bc.builder
   ClassFile cf;
 
   public void decode(byte[] b) {
-    cf = ClassFile.parse(b);
-    init();        // magic
-    class_info();  // minor_version, major_version, access_flags, this_class, super_class
-    interfaces();  // interfaces_count, interfaces[interfaces_count]
-    fields();      // fields_count, fields[fields_count]
-    methods();     // methods_count, methods[methods_count]
-    attributes();  // attributes_count, attributes[attributes_count]
-    constants();   // constant_pool_count, constants[constant_pool_count-1]
+    cf = bc.Bytecode.parse(b);
+    init();       // magic, minor_version, major_version
+    values();     // constant_pool_count, constants[constant_pool_count-1]
+    class_();     // access_flags, this_class, super_class
+    interfaces(); // interfaces_count, interfaces[interfaces_count]
+    fields();     // fields_count, fields[fields_count]
+    methods();    // methods_count, methods[methods_count]
+    attributes(); // attributes_count, attributes[attributes_count]
   }
 
   void init() {
     assert cf.magic() == 0xcafebabe;
-    values();
+    f("Bytecode.build(%d.%d)\n", cf.major(), cf.minor() );
   }
 
-  /**
-   *  ClassFile: # 4.1
-   */
-  void class_info() {
-    f("CompilationUnit.of(%s)\n", s(cf.type()) );
-    f("  superType(%s)\n", s(cf.superType()) );
-    f("  version(%d.%d)\n", cf.major(), cf.minor() );
-    f("  flags(0x%04x)\n", cf.flags() );
+  void class_() {
+    f("  Class(%s, %s)\n", s(cf.type()), s(cf.superType()) );
+    f("    flags(0x%04x)\n", cf.flags() );
+  }
+
+  Object[] V;
+
+  void values() {
+    V = new Object[cf.constantCount()];
+    for (var i:cf.constantPool()) {
+      V[i.index()] = switch(i.tag()) {
+
+        case CONSTANT_Utf8 -> "\"" + cf.chars(((CP.Utf8)i).offset(),((CP.Utf8)i).length()) + "\"";
+
+        case CONSTANT_Integer -> cf.int32(((CP.Integer)i).offset());
+        case CONSTANT_Float -> Float.floatToIntBits(cf.int32(((CP.Float)i).offset()));
+        case CONSTANT_Long -> cf.int64(((CP.Long)i).offset());
+        case CONSTANT_Double -> Double.longBitsToDouble(cf.int64(((CP.Double)i).offset()));
+        default -> null;
+      };
+    }
   }
 
   void interfaces() {
@@ -70,101 +83,6 @@ public class Decode { // for bc.builder
   }
 
   /**
-   *  cp_info : # 4.4
-   *    u1 tag
-   *    u1 info[]
-   */
-  void constants() {
-    f("# %d constants\n", cf.constantCount());
-    g(cf.constantPool(), this::constant);
-  }
-
-  void constant(CP.Info c) {
-    switch (c.tag()) {
-      case CONSTANT_Utf8 -> ed((CP.Utf8)c);
-        // CONSTANT_Integer -> ed((IntegerRef)c);
-        // CONSTANT_Float -> ed((FloatRef)c);
-        // CONSTANT_Long -> ed((LongRef)c);
-        // CONSTANT_Double -> ed((DoubleRef)c);
-      case CONSTANT_Class -> ed((CP.Class)c);
-        // CONSTANT_String -> ed((StringRef)c);
-      case CONSTANT_Fieldref -> ed((CP.Field)c);
-      case CONSTANT_Methodref -> ed((CP.Method)c);
-        // CONSTANT_InterfaceMethodref -> ed((InterfaceMethodRef)c);
-      case CONSTANT_NameAndType -> ed((CP.NameAndType)c);
-        // CONSTANT_MethodHandle -> ed((MethodHandleRef)c);
-        // CONSTANT_MethodType -> ed((MethodTypeRef)c);
-        // CONSTANT_Dynamic -> ed((DynamicRef)c);
-        // CONSTANT_InvokeDynamic -> ed((InvokeDynamicRef)c);
-        // CONSTANT_Module -> ed((ModuleRef)c);
-        // CONSTANT_Package -> ed((PackageRef)c);
-
-      default -> f("--> %s\n", c);
-    }
-  }
-
-  /**
-   *  CONSTANT_Class_info : # 4.4.1
-   *    u2 name_index
-   */
-  void ed(CP.Class c) {
-    f("  TODO: %s\n", c);
-  }
-
-  // # 4.4.2
-  void ed(CP.Field c) {
-    f("  TODO: %s\n", c);
-  }
-
-  /**
-   *  CONSTANT_Methodref_info : # 4.4.2
-   *    u2 class_index -> Class
-   *    u2 name_and_type_index -> NameAndType
-   */
-  void ed(CP.Method c) {
-    f("  TODO: %s\n", c);
-  }
-
-  // void ed(InterfaceMethodRef c) { d("  TODO: %s\n", c); } # 4.4.2
-
-  // void ed(StringRef c) { d("  TODO: %s\n", c); } # 4.4.3
-
-  // void ed(FloatRef c) { d("  TODO: %s\n", c); } # 4.4.4
-  // void ed(IntegerRef c) { d("  TODO: %s\n", c); } # 4.4.4
-
-  // void ed(LongRef c) { d("  TODO: %s\n", c); } # 4.4.5
-  // void ed(DoubleRef c) { d("  TODO: %s\n", c); } # 4.4.5
-
-  /**
-   *  CONSTANT_NameAndType_info : # 4.4.6
-   *    u2 name_index -> Utf8
-   *    u2 descriptor_index -> Utf8
-   */
-  void ed(CP.NameAndType c) {
-    f("  TODO: %s\n", c);
-  }
-
-  /**
-   *  CONSTANT_Utf8_info : # 4.4.7
-   *   u2 length
-   *   u1 bytes[length]
-   */
-  void ed(CP.Utf8 c) {
-    f("  TODO: %s\n", c);
-  }
-
-  // void ed(MethodHandleRef c) { d("  TODO: %s\n", c); } # 4.4.8
-
-  // void ed(MethodTypeRef c) { d("  TODO: %s\n", c); } # 4.4.9
-
-  // void ed(DynamicRef c)  { d("  TODO: %s\n", c); } # 4.4.10
-  // void ed(InvokeDynamicRef c) { d("  TODO: %s\n", c); } # 4.4.10
-
-  // void ed(ModuleRef c) { d("  TODO: %s\n", c); } # 4.4.11
-
-  // void ed(PackageRef c) { d("  TODO: %s\n", c); } # 4.4.12
-
-  /**
    *  field_info : # 4.5
    *    u2 access_flags
    *    u2 name_index
@@ -175,11 +93,15 @@ public class Decode { // for bc.builder
   void fields() {
     f("# %d fields\n", cf.fieldsCount());
     for (var d:cf.fields()) {
-      f("  FieldInfo(%s, %s)\n", s(d.name()), s(d.descriptor()));
+      f("  Field(%s, %s)\n", s(d.name()), s(d.descriptor()));
       f("    flags(0x%04x)\n", d.flags() );
       q(d.attributes(), this::attribute);
     }
   }
+
+  // String cname(d)
+  // String descriptor(d)
+  // String flags(d)
 
   /**
    *  method_info : # 4.6
@@ -192,7 +114,7 @@ public class Decode { // for bc.builder
   void methods() {
     f("# %d methods\n", cf.methodsCount());
     for (var d:cf.methods()) {
-      f("  MethodInfo(%s, %s)\n", s(d.name()), s(d.descriptor()));
+      f("  Method(%s, %s)\n", s(d.name()), s(d.descriptor()));
       f("    flags(0x%04x)\n", d.flags() );
       q(d.attributes(), this::attribute);
     }
@@ -213,9 +135,9 @@ public class Decode { // for bc.builder
     switch (a.tag()) {
         // ATTRIBUTE_ConstantValue -> ed((ConstantValue)a);
       case ATTRIBUTE_Code -> ed((Code)a);
-        // ATTRIBUTE_StackMapTable -> ed((StackMapTable)a);
+      case ATTRIBUTE_StackMapTable -> ed((StackMapTable)a);
         // ATTRIBUTE_Exceptions -> ed((Exceptions)a);
-        // ATTRIBUTE_InnerClasses -> ed((InnerClasses)a);
+      case ATTRIBUTE_InnerClasses -> ed((InnerClasses)a);
         // ATTRIBUTE_EnclosingMethod -> ed((EnclosingMethod)a);
         // ATTRIBUTE_Synthetic -> ed((Synthetic)a);
       case ATTRIBUTE_Signature -> ed((Signature)a);
@@ -233,7 +155,7 @@ public class Decode { // for bc.builder
         // ATTRIBUTE_RuntimeInvisibleTypeAnnotations -> ed((RuntimeInvisibleTypeAnnotations)a);
         // ATTRIBUTE_AnnotationDefault -> ed((AnnotationDefault)a);
         // ATTRIBUTE_BootstrapMethods -> ed((BootstrapMethods)a);
-        // ATTRIBUTE_MethodParameters -> ed((MethodParameters)a);
+      case ATTRIBUTE_MethodParameters -> ed((MethodParameters)a);
         // ATTRIBUTE_Module -> ed((Module)a);
         // ATTRIBUTE_ModulePackages -> ed((ModulePackages)a);
         // ATTRIBUTE_ModuleMainClass -> ed((ModuleMainClass)a);
@@ -274,7 +196,11 @@ public class Decode { // for bc.builder
     p(-2);
   }
 
-  Operation op = new Operation();
+  // TODO:
+  // Instruction op = new Instruction(constantPool,localVariable,codeOffset);
+  Instruction op = new Instruction(
+    cp -> "#"+cp, lv -> "$"+lv, jm -> ">"+jm
+  );
 
   void instructions(Code c) {
     f("%s # instructions\n", P);
@@ -291,11 +217,17 @@ public class Decode { // for bc.builder
     q(c.attributes(), this::attribute);
   }
 
-  // void ed(StackMapTable a) { d("%s TODO: %s\n", P, a); } # 4.7.4
+  void ed(StackMapTable a) {
+    f("%s TODO: %s\n", P, a);
+    q(a.entries(), e -> f("%s --> %s\n", P, e) );
+  }
 
   // void ed(Exceptions a) { d("%s TODO: %s\n", P, a); } # 4.7.5
 
-  // void ed(InnerClasses a) { d("%s TODO: %s\n", P, a); } # 4.7.6
+  void ed(InnerClasses a) {
+    f("%s TODO: %s\n", P, a);
+    q(a.types(), e -> f("%s --> %s\n", P, e) );
+  }
 
   // void ed(EnclosingMethod a) { d("%s TODO: %s\n", P, a); } # 4.7.7
 
@@ -369,7 +301,10 @@ public class Decode { // for bc.builder
 
   // void ed(BootstrapMethods a) { d("%s TODO: %s\n", P, a); } # 4.7.23
 
-  // void ed(MethodParameters a) { d("%s TODO: %s\n", P, a); } # 4.7.24
+  void ed(MethodParameters a) {
+    f("%s TODO: %s\n", P, a);
+    q(a.parameters(), e -> f("%s --> %s\n", P, e) );
+  }
 
   // void ed(Module a) { d("%s TODO: %s\n", P, a); } # 4.7.25
 
@@ -394,26 +329,6 @@ public class Decode { // for bc.builder
   void f(String format, Object... args) { out.format(format,args); }
   <T> void g(Iterable<T> i, Consumer<T> c) { for (var t:i) c.accept(t); }
 
-  Object[] V;
-
-  void values() {
-    V = new Object[cf.constantCount()];
-    for (var i:cf.constantPool()) {
-      V[i.index()] = switch(i.tag()) {
-
-        case CONSTANT_Utf8 -> "\"" + cf.chars(((CP.Utf8)i).offset(),((CP.Utf8)i).length()) + "\"";
-
-        case CONSTANT_Integer -> cf.int32(((CP.Integer)i).offset());
-        case CONSTANT_Float -> Float.floatToIntBits(cf.int32(((CP.Float)i).offset()));
-
-        case CONSTANT_Long -> cf.int64(((CP.Long)i).offset());
-        case CONSTANT_Double -> Double.longBitsToDouble(cf.int64(((CP.Double)i).offset()));
-
-        default -> null;
-      };
-    }
-  }
-
   String s(CP.Info i) {
     return String.valueOf(switch (i.tag()) {
 
@@ -434,6 +349,5 @@ public class Decode { // for bc.builder
   }
 
   String s(short i) { return String.valueOf(V[i]); }
+
 }
-/*
-*/

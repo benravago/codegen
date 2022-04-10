@@ -95,13 +95,16 @@ class Disasm {
            OP_dcmpl, OP_dcmpg
            -> null; // 94-98
 
-      case OP_ifeq, OP_ifne, OP_iflt, OP_ifge, OP_ifgt, OP_ifle,
-           OP_if_icmpeq, OP_if_icmpne, OP_if_icmplt, OP_if_icmpge, OP_if_icmpgt, OP_if_icmple,
+      case OP_ifeq, OP_ifne, OP_iflt, OP_ifge, OP_ifgt, OP_ifle
+           -> a.u2(); // 99-a6 (2) branch
+
+      case OP_if_icmpeq, OP_if_icmpne, OP_if_icmplt, OP_if_icmpge, OP_if_icmpgt, OP_if_icmple,
            OP_if_acmpeq, OP_if_acmpne
            -> a.u2(); // 99-a6 (2) branch
 
       case OP_goto, OP_jsr
            -> a.u2(); // a7-a8 (2) branch
+
       case OP_ret
            -> a.u1(); // a9 (1) lv.index
 
@@ -132,8 +135,10 @@ class Disasm {
            -> null; // ac-b1
 
       case OP_getstatic, OP_putstatic,
-           OP_getfield, OP_putfield,
-           OP_invokevirtual, OP_invokespecial, OP_invokestatic
+           OP_getfield, OP_putfield
+           -> a.u2(); // b2-b8 (2) cp.index
+
+      case OP_invokevirtual, OP_invokespecial, OP_invokestatic
            -> a.u2(); // b2-b8 (2) cp.index
 
       case OP_invokeinterface -> {

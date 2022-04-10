@@ -17,24 +17,24 @@ class Constant {
    *    u2 length
    *    u1 bytes[length]
    */
-  record cp_utf8(byte tag, String value) implements cp_info {}
-  cp_utf8 Utf8(String value) { return new cp_utf8(CONSTANT_Utf8,value); }
+  record ci_utf8(byte tag, String value) implements cp_info {}
+  ci_utf8 Utf8(String value) { return new ci_utf8(CONSTANT_Utf8,value); }
 
   /**
    *  CONSTANT_Integer_info :
    *    u1 tag = 3
    *    u4 bytes
    */
-  record cp_integer(byte tag, int value) implements cp_info {}
-  cp_integer Integer(int value) { return new cp_integer(CONSTANT_Integer,value); }
+  record ci_integer(byte tag, int value) implements cp_info {}
+  ci_integer Integer(int value) { return new ci_integer(CONSTANT_Integer,value); }
 
   /**
    *  CONSTANT_Float_info :
    *    u1 tag = 4
    *    u4 bytes
    */
-  record cp_float(byte tag, float value) implements cp_info {}
-  cp_float Float(float value) { return new cp_float(CONSTANT_Float,value); }
+  record ci_float(byte tag, float value) implements cp_info {}
+  ci_float Float(float value) { return new ci_float(CONSTANT_Float,value); }
 
   /**
    *  CONSTANT_Long_info :
@@ -42,8 +42,8 @@ class Constant {
    *    u4 high_bytes
    *    u4 low_bytes
    */
-  record cp_long(byte tag, long value) implements cp_info {}
-  cp_long Long(long value) { return new cp_long(CONSTANT_Long,value); }
+  record ci_long(byte tag, long value) implements cp_info {}
+  ci_long Long(long value) { return new ci_long(CONSTANT_Long,value); }
 
   /**
    *  CONSTANT_Double_info :
@@ -51,24 +51,24 @@ class Constant {
    *    u4 high_bytes
    *    u4 low_bytes
    */
-  record cp_double(byte tag, double value) implements cp_info {}
-  cp_double Double(double value) { return new cp_double(CONSTANT_Double,value); }
+  record ci_double(byte tag, double value) implements cp_info {}
+  ci_double Double(double value) { return new ci_double(CONSTANT_Double,value); }
 
   /**
    *  CONSTANT_String_info :
    *    u1 tag = 8
    *    u2 string_index ->  CONSTANT_Utf8_info
    */
-  record cp_string(byte tag, cp_utf8 string) implements cp_info {}
-  cp_string String(Object a) { return new cp_string(CONSTANT_String, Utf8(String.valueOf(a))); }
+  record ci_string(byte tag, ci_utf8 string) implements cp_info {}
+  ci_string String(Object a) { return new ci_string(CONSTANT_String, Utf8(String.valueOf(a))); }
 
   /**
    *  CONSTANT_Class_info :
    *    u1 tag = 7
    *    u2 name_index -> CONSTANT_Utf8_info
    */
-  record cp_class(byte tag, cp_utf8 name) implements cp_info {}
-  cp_class Class(Object a) { return new cp_class(CONSTANT_Class, Utf8(class_d(a))); }
+  record ci_class(byte tag, ci_utf8 name) implements cp_info {}
+  ci_class Class(Object a) { return new ci_class(CONSTANT_Class, Utf8(class_d(a))); }
 
   /**
    *  CONSTANT_NameAndType_info :
@@ -76,8 +76,8 @@ class Constant {
    *    u2 name_index -> CONSTANT_Utf8_info
    *    u2 descriptor_index -> CONSTANT_Utf8_info
    */
-  record cp_name_and_type(byte tag, cp_utf8 name, cp_utf8 descriptor) implements cp_info {}
-  cp_name_and_type NameAndType(Object a, Object b) { return new cp_name_and_type(CONSTANT_NameAndType, Utf8(class_d(a)), descriptor(b)); }
+  record ci_name_and_type(byte tag, ci_utf8 name, ci_utf8 descriptor) implements cp_info {}
+  ci_name_and_type NameAndType(Object a, Object b) { return new ci_name_and_type(CONSTANT_NameAndType, Utf8(class_d(a)), descriptor(b)); }
 
   /**
    *  CONSTANT_Fieldref_info :
@@ -85,8 +85,8 @@ class Constant {
    *    u2 class_index -> CONSTANT_Class_info
    *    u2 name_and_type_index -> CONSTANT_NameAndType_info
    */
-  record cp_field(byte tag, cp_class owner, cp_name_and_type name_and_type) implements cp_info, ref_info {}
-  cp_field Field(Object a, Object...b) { return new cp_field(CONSTANT_Fieldref, Class(a), field(b)); }
+  record ci_field(byte tag, ci_class owner, ci_name_and_type name_and_type) implements cp_info, ref_info {}
+  ci_field Field(Object a, Object...b) { return new ci_field(CONSTANT_Fieldref, Class(a), field(b)); }
 
   /**
    *  CONSTANT_Methodref_info :
@@ -94,8 +94,8 @@ class Constant {
    *    u2 class_index -> CONSTANT_Class_info
    *    u2 name_and_type_index -> CONSTANT_NameAndType_info
    */
-  record cp_method(byte tag, cp_class owner, cp_name_and_type name_and_type) implements cp_info, ref_info {}
-  cp_method Method(Object a, Object...b) { return new cp_method(CONSTANT_Methodref, Class(a), method(b)); }
+  record ci_method(byte tag, ci_class owner, ci_name_and_type name_and_type) implements cp_info, ref_info {}
+  ci_method Method(Object a, Object...b) { return new ci_method(CONSTANT_Methodref, Class(a), method(b)); }
 
   /**
    *  CONSTANT_InterfaceMethodref_info :
@@ -103,8 +103,8 @@ class Constant {
    *    u2 class_index -> CONSTANT_Class_info
    *    u2 name_and_type_index -> CONSTANT_NameAndType_info
    */
-  record cp_interface_method(byte tag, cp_class owner, cp_name_and_type name_and_type) implements cp_info, ref_info {}
-  cp_interface_method InterfaceMethod(Object a, Object...b) { return new cp_interface_method(CONSTANT_InterfaceMethodref, Class(a), method(b)); }
+  record ci_interface_method(byte tag, ci_class owner, ci_name_and_type name_and_type) implements cp_info, ref_info {}
+  ci_interface_method InterfaceMethod(Object a, Object...b) { return new ci_interface_method(CONSTANT_InterfaceMethodref, Class(a), method(b)); }
 
   /**
    *    #  reference_kind        reference_index
@@ -119,7 +119,7 @@ class Constant {
    *    8  REF_newInvokeSpecial  CONSTANT_Methodref_info
    *    9  REF_invokeInterface   CONSTANT_InterfaceMethodref_info
    */
-  interface ref_info { cp_class owner(); cp_name_and_type name_and_type(); }
+  interface ref_info { ci_class owner(); ci_name_and_type name_and_type(); }
 
   /**
    *  CONSTANT_MethodHandle_info :
@@ -127,16 +127,16 @@ class Constant {
    *    u1 reference_kind = REF_*
    *    u2 reference_index -> CONSTANT_*ref_info
    */
-  record cp_method_handle(byte tag, byte kind, ref_info reference) implements cp_info {}
-  cp_method_handle MethodHandle(byte a, Object b) { return new cp_method_handle(CONSTANT_MethodHandle, a, reference(b)); }
+  record ci_method_handle(byte tag, byte kind, ref_info reference) implements cp_info {}
+  ci_method_handle MethodHandle(byte a, Object b) { return new ci_method_handle(CONSTANT_MethodHandle, a, reference(b)); }
 
   /**
    *  CONSTANT_MethodType_info :
    *    u1 tag = 16
    *    u2 descriptor_index -> CONSTANT_Utf8_info
    */
-  record cp_method_type(byte tag, cp_utf8 descriptor) implements cp_info {}
-  cp_method_type MethodType(Object a) { return new cp_method_type(CONSTANT_MethodType, descriptor(a)); }
+  record ci_method_type(byte tag, ci_utf8 descriptor) implements cp_info {}
+  ci_method_type MethodType(Object a) { return new ci_method_type(CONSTANT_MethodType, descriptor(a)); }
 
   /**
    *  CONSTANT_Dynamic_info :
@@ -144,8 +144,8 @@ class Constant {
    *    u2 bootstrap_method_attr_index = bootstrap_methods[index]
    *    u2 name_and_type_index -> CONSTANT_NameAndType_info
    */
-  record cp_dynamic(byte tag, bootstrap method, cp_name_and_type name_and_type) implements cp_info {}
-  cp_dynamic Dynamic(Object a, Object b, Object c) { return new cp_dynamic(CONSTANT_Dynamic, bootstrap(a), NameAndType(b,c)); }
+  record ci_dynamic(byte tag, bootstrap method, ci_name_and_type name_and_type) implements cp_info {}
+  ci_dynamic Dynamic(Object a, Object b, Object c) { return new ci_dynamic(CONSTANT_Dynamic, bootstrap(a), NameAndType(b,c)); }
 
   /**
    *  CONSTANT_InvokeDynamic_info :
@@ -153,24 +153,24 @@ class Constant {
    *    u2 bootstrap_method_attr_index;
    *    u2 name_and_type_index -> CONSTANT_NameAndType_info
    */
-  record cp_invoke_dynamic(byte tag, bootstrap method, cp_name_and_type name_and_type) implements cp_info {}
-  cp_invoke_dynamic InvokeDynamic(Object a, Object b, Object c) { return new cp_invoke_dynamic(CONSTANT_InvokeDynamic, bootstrap(a), NameAndType(b,c)); }
+  record ci_invoke_dynamic(byte tag, bootstrap method, ci_name_and_type name_and_type) implements cp_info {}
+  ci_invoke_dynamic InvokeDynamic(Object a, Object b, Object c) { return new ci_invoke_dynamic(CONSTANT_InvokeDynamic, bootstrap(a), NameAndType(b,c)); }
 
   /**
    *  CONSTANT_Module_info :
    *    u1 tag = 19
    *    u2 name_index -> CONSTANT_Utf8_info
    */
-  record cp_module(byte tag, cp_utf8 name) implements cp_info {}
-  cp_module Module(Object a) { return new cp_module(CONSTANT_Module, Utf8(module_d(a))); }
+  record ci_module(byte tag, ci_utf8 name) implements cp_info {}
+  ci_module Module(Object a) { return new ci_module(CONSTANT_Module, Utf8(module_d(a))); }
 
   /**
    *  CONSTANT_Package_info :
    *    u1 tag = 20
    *    u2 name_index -> CONSTANT_Utf8_info
    */
-  record cp_package(byte tag, cp_utf8 name) implements cp_info {}
-  cp_package Package(Object a) { return new cp_package(CONSTANT_Package, Utf8(package_d(a))); }
+  record ci_package(byte tag, ci_utf8 name) implements cp_info {}
+  ci_package Package(Object a) { return new ci_package(CONSTANT_Package, Utf8(package_d(a))); }
 
 
   // TODO:
@@ -192,10 +192,10 @@ class Constant {
   // 4.2.2. Unqualified Names
   // Names of methods, fields, local variables, and formal parameters are stored as unqualified names.
 
-  cp_utf8 descriptor(Object a) { return null; } // 4.3. Descriptors
+  ci_utf8 descriptor(Object a) { return null; } // 4.3. Descriptors
 
-  cp_name_and_type field(Object...a) { return null; } // 4.3.2. Field Descriptors
-  cp_name_and_type method(Object...a) { return null; } // 4.3.3. Method Descriptors
+  ci_name_and_type field(Object...a) { return null; } // 4.3.2. Field Descriptors
+  ci_name_and_type method(Object...a) { return null; } // 4.3.3. Method Descriptors
 
   ref_info reference(Object a) { return null; }
 
@@ -209,7 +209,7 @@ class Constant {
   //    } bootstrap_methods[num_bootstrap_methods];
   //  }
 
-  record bootstrap(cp_method_handle handle, cp_info...arguments) {}
+  record bootstrap(ci_method_handle handle, cp_info...arguments) {}
 
   bootstrap bootstrap(Object arg) { return null; }
 

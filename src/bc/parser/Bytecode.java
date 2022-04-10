@@ -1,7 +1,5 @@
 package bc.parser;
 
-import static bc.Format.*;
-
 public final class Bytecode implements bc.ClassFile {
 
   final byte[] b;
@@ -161,9 +159,9 @@ public final class Bytecode implements bc.ClassFile {
 
   // decode parts of Bytecode buffer
 
-  @Override public CharSequence chars(int off, int len) { return utf8(b,off,len); }
-  @Override public int int32(int off) { return i32(b,off); }
-  @Override public long int64(int off) { return i64(b,off); }
+  @Override public CharSequence chars(int off, int len) { return bc.Bytecode.utf8(b,off,len); }
+  @Override public int int32(int off) { return bc.Bytecode.i32(b,off); }
+  @Override public long int64(int off) { return bc.Bytecode.i64(b,off); }
 
   // access Bytecode buffer by range
 

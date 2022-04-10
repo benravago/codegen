@@ -224,19 +224,19 @@ final class Operation {
     return s;
   }
 
-  void i_        (String n) { f( "%04x  %s"            , o.pc(), n                   ); } //  -
-  void i_1b      (String n) { f( "%04x  %s  %d"        , o.pc(), n, u1()             ); } //  (1)  byte
-  void i_2s      (String n) { f( "%04x  %s  %d"        , o.pc(), n, u2()             ); } //  (2)  short
-  void i_1c      (String n) { f( "%04x  %s  %s"        , o.pc(), n, cp(u1())         ); } //  (1)  cp.index
-  void i_2c      (String n) { f( "%04x  %s  %s"        , o.pc(), n, cp(u2())         ); } //  (2)  cp.index
-  void i_2c_1d   (String n) { f( "%04x  %s  %s, %d"    , o.pc(), n, cp(u2(0)), u1(1) ); } //  (2,1)  cp.index, const
-  void i_1v      (String n) { f( "%04x  %s  %s"        , o.pc(), n, lv(u1())         ); } //  (1)  lv.index
-  void i_1v_1d   (String n) { f( "%04x  %s  %s, %d"    , o.pc(), n, lv(u1(0)), u1(1) ); } //  (1,1)  lv.index, const
-  void i_1t      (String n) { f( "%04x  %s  =%d"       , o.pc(), n, u1()             ); } //  (1)  atype
-  void i_2j      (String n) { f( "%04x  %s  >%04x"     , o.pc(), n, u2()             ); } //  (2)  branch
-  void i_4j      (String n) { f( "%04x  %s  >%08x"     , o.pc(), n, u4()             ); } //  (4)  branch
-  void i_2c_1d_0 (String n) { f( "%04x  %s  %s, %d, 0" , o.pc(), n, cp(u2(0)), u1(1) ); } //  (2,1,0)  cp.index, count, 0
-  void i_2c_0_0  (String n) { f( "%04x  %s  %s, 0, 0"  , o.pc(), n, cp(u2(0))        ); } //  (2,0,0)  cp.index, 0, 0
+  void i_        (String n) { f( "%s"            , n                   ); } //  -
+  void i_1b      (String n) { f( "%s  %d"        , n, u1()             ); } //  (1)  byte
+  void i_2s      (String n) { f( "%s  %d"        , n, u2()             ); } //  (2)  short
+  void i_1c      (String n) { f( "%s  %s"        , n, cp(u1())         ); } //  (1)  cp.index
+  void i_2c      (String n) { f( "%s  %s"        , n, cp(u2())         ); } //  (2)  cp.index
+  void i_2c_1d   (String n) { f( "%s  %s, %d"    , n, cp(u2(0)), u1(1) ); } //  (2,1)  cp.index, const
+  void i_1v      (String n) { f( "%s  %s"        , n, lv(u1())         ); } //  (1)  lv.index
+  void i_1v_1d   (String n) { f( "%s  %s, %d"    , n, lv(u1(0)), u1(1) ); } //  (1,1)  lv.index, const
+  void i_1t      (String n) { f( "%s  =%d"       , n, u1()             ); } //  (1)  atype
+  void i_2j      (String n) { f( "%s  >%04x"     , n, jp(u2())         ); } //  (2)  branch
+  void i_4j      (String n) { f( "%s  >%08x"     , n, jp(u4())         ); } //  (4)  branch
+  void i_2c_1d_0 (String n) { f( "%s  %s, %d, 0" , n, cp(u2(0)), u1(1) ); } //  (2,1,0)  cp.index, count, 0
+  void i_2c_0_0  (String n) { f( "%s  %s, 0, 0"  , n, cp(u2(0))        ); } //  (2,0,0)  cp.index, 0, 0
 
   void i_p_4d_4d_4d_x(String n) {
     var v = (Integer[])o.args();
@@ -284,15 +284,15 @@ final class Operation {
 
   void f(String format, Object... args) { f.format(format,args); }
 
-
   Byte    u1() { return (Byte)   o.args(); }
   Short   u2() { return (Short)  o.args(); }
   Integer u4() { return (Integer)o.args(); }
 
-  Byte    u1(int i) { return (Byte) ((Object[])o.args())[i]; }
-  Short   u2(int i) { return (Short)((Object[])o.args())[i]; }
+  Byte  u1(int i) { return (Byte) ((Object[])o.args())[i]; }
+  Short u2(int i) { return (Short)((Object[])o.args())[i]; }
 
   CharSequence cp(int i) { return "#"+i; }
   CharSequence lv(int i) { return "$"+i; }
+  int          jp(int i) { return i;     }
 
 }

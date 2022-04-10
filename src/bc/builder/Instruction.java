@@ -5,8 +5,6 @@ import static bc.JVMS.*;
 
 abstract class Instruction {
 
-  public Code $(String s) { return label(s); }
-
   public Code _nop                             () { return i_             ( OP_nop                   ); } // 00
   public Code _aconst_null                     () { return i_             ( OP_aconst_null           ); } // 01
   public Code _iconst_m1                       () { return i_             ( OP_iconst_m1             ); } // 02
@@ -229,7 +227,5 @@ abstract class Instruction {
   abstract Code i_p_4d_4d_4d_v (byte o, Object...a);         //  (0-3,4,4,4,...) padding, default, low, high, jump offsets
   abstract Code i_p_4d_4d_v    (byte o, Object...a);         //  (0-3,4,4,...)  padding, default, npairs, match/offset pairs
   abstract Code i_1w_2c_v      (byte o, byte w, Object...a); //  (1,2 | 1,2,2) opcode, cp.index | iinc, cp.index, count
-
-  abstract Code label(String s); // marks a label for jump offsets, etc
 
 }
