@@ -153,7 +153,7 @@ public class Decode { // for bc.builder
     }
   }
 
-  // void ed(ConstantValue a) { d("%cp TODO: %cp\n", P, a); } # 4.7.2
+  // void ed(ConstantValue a) { d("%constantPool TODO: %constantPool\n", P, a); } # 4.7.2
 
   void ed(Code c) { // # 4.7.3
     f("%s Code()\n", P);
@@ -193,9 +193,7 @@ public class Decode { // for bc.builder
     q(lines, l -> f("%s %s\n", P, l.text) );
   }
 
-  Operation op = new Operation(
-    ci -> cp(W[ci]), lv -> "&"+lv, jm -> ">"+jm
-  );
+  Operation op = new Operation(this::constantPool, this::localVariable, this::codeOffset);
 
   void instructions(Code c) {
     for (var o:c.codes()) {
@@ -238,7 +236,7 @@ public class Decode { // for bc.builder
     q(a.entries(), e -> f("%s # %s\n", P, e) );
   }
 
-  // void ed(Exceptions a) { d("%cp TODO: %cp\n", P, a); } # 4.7.5
+  // void ed(Exceptions a) { d("%constantPool TODO: %constantPool\n", P, a); } # 4.7.5
 
   void ed(InnerClasses a) { // # 4.7.6
     f("%s InnerClasses()\n", P);
@@ -249,7 +247,7 @@ public class Decode { // for bc.builder
     f("%s EnclosingMethod(%s, %s)\n", P, cp(a.enclosingClass()), cp(a.type()) );
   }
 
-  // void ed(Synthetic a) { d("%cp TODO: %cp\n", P, a); } # 4.7.8
+  // void ed(Synthetic a) { d("%constantPool TODO: %constantPool\n", P, a); } # 4.7.8
 
   void ed(Signature a) { // # 4.7.9
     f("%s Signature(%s)\n", P, cp(a.signature()));
@@ -259,12 +257,18 @@ public class Decode { // for bc.builder
     f("%s SourceFile(%s)\n", P, cp(a.sourcefile()));
   }
 
-  // void ed(SourceDebugExtension a) { d("%cp TODO: %cp\n", P, a); } # 4.7.11
+  // void ed(SourceDebugExtension a) { d("%constantPool TODO: %constantPool\n", P, a); } # 4.7.11
 
   void ed(LineNumberTable t) { // # 4.7.12
     for (var i:t.lines()) {
       line(i.pc(), LABEL, "$(%d) # %04x".formatted(i.n(),i.pc()) );
     }
+  }
+
+  String codeOffset(int i) {
+    var offset = "0x%04x".formatted(i);
+    line((short)i, LABEL, "$("+offset+')' );
+    return offset;
   }
 
   void ed(LocalVariableTable a) { // # 4.7.13
@@ -320,36 +324,43 @@ public class Decode { // for bc.builder
     v.append(index).append(',');
   }
 
-  // void ed(Deprecated a) { d("%cp TODO: %cp\n", P, a); } # 4.7.15
+  String localVariable(int i) {
+    var v = defs.get((short)i);
+    return v != null ? cp(v.name) : "&"+i;
+  }
+
+
+
+  // void ed(Deprecated a) { d("%constantPool TODO: %constantPool\n", P, a); } # 4.7.15
 
   void ed(RuntimeVisibleAnnotations a) { // # 4.7.16
     f("%s TODO: %s\n", P, a);
   }
 
-  // void ed(RuntimeInvisibleAnnotations a) { d("%cp TODO: %cp\n", P, a); } # 4.7.17
+  // void ed(RuntimeInvisibleAnnotations a) { d("%constantPool TODO: %constantPool\n", P, a); } # 4.7.17
 
-  // void ed(RuntimeVisibleParameterAnnotations a) { d("%cp TODO: %cp\n", P, a); } # 4.7.18
+  // void ed(RuntimeVisibleParameterAnnotations a) { d("%constantPool TODO: %constantPool\n", P, a); } # 4.7.18
 
-  // void ed(RuntimeInvisibleParameterAnnotations a) { d("%cp TODO: %cp\n", P, a); } # 4.7.19
+  // void ed(RuntimeInvisibleParameterAnnotations a) { d("%constantPool TODO: %constantPool\n", P, a); } # 4.7.19
 
-  // void ed(RuntimeVisibleTypeAnnotations a) { d("%cp TODO: %cp\n", P, a); } # 4.7.20
+  // void ed(RuntimeVisibleTypeAnnotations a) { d("%constantPool TODO: %constantPool\n", P, a); } # 4.7.20
 
-  // void ed(RuntimeInvisibleTypeAnnotations a) { d("%cp TODO: %cp\n", P, a); } # 4.7.21
+  // void ed(RuntimeInvisibleTypeAnnotations a) { d("%constantPool TODO: %constantPool\n", P, a); } # 4.7.21
 
-  // void ed(AnnotationDefault a) { d("%cp TODO: %cp\n", P, a); } # 4.7.22
+  // void ed(AnnotationDefault a) { d("%constantPool TODO: %constantPool\n", P, a); } # 4.7.22
 
-  // void ed(BootstrapMethods a) { d("%cp TODO: %cp\n", P, a); } # 4.7.23
+  // void ed(BootstrapMethods a) { d("%constantPool TODO: %constantPool\n", P, a); } # 4.7.23
 
   void ed(MethodParameters a) { // # 4.7.24
     f("%s MethodParameters()\n", P);
     q(a.parameters(), e -> f("%s add(%s, 0x%04x)\n", P, cp(e.name()), e.flags() ));
   }
 
-  // void ed(Module a) { d("%cp TODO: %cp\n", P, a); } # 4.7.25
+  // void ed(Module a) { d("%constantPool TODO: %constantPool\n", P, a); } # 4.7.25
 
-  // void ed(ModulePackages a) { d("%cp TODO: %cp\n", P, a); } # 4.7.26
+  // void ed(ModulePackages a) { d("%constantPool TODO: %constantPool\n", P, a); } # 4.7.26
 
-  // void ed(ModuleMainClass a) { d("%cp TODO: %cp\n", P, a); } # 4.7.27
+  // void ed(ModuleMainClass a) { d("%constantPool TODO: %constantPool\n", P, a); } # 4.7.27
 
   void ed(NestHost a) { // # 4.7.28
     f("%s NestHost(%s)\n", P, cp(a.hostClass()));
@@ -357,12 +368,12 @@ public class Decode { // for bc.builder
 
   void ed(NestMembers a) { // # 4.7.29
     f("%s NestMembers()\n", P);
-    q(a.members(), m -> f("%s add(%s)\n", P, cp(W[m.index()]))  );
+    q(a.members(), m -> f("%s add(%s)\n", P, constantPool(m.index()))  );
   }
 
-  // void ed(Record a) { d("%cp TODO: %cp\n", P, a); } # 4.7.30
+  // void ed(Record a) { d("%constantPool TODO: %constantPool\n", P, a); } # 4.7.30
 
-  // void ed(PermittedSubclasses a) { d("%cp TODO: %cp\n", P, a); } # 4.7.31
+  // void ed(PermittedSubclasses a) { d("%constantPool TODO: %constantPool\n", P, a); } # 4.7.31
 
   String P = " ";
 
@@ -371,6 +382,8 @@ public class Decode { // for bc.builder
 
   void f(String format, Object... args) { out.format(format,args); }
   <T> void g(Iterable<T> i, Consumer<T> c) { for (var t:i) c.accept(t); }
+
+  String dq(short i) { return "\"" + V[i] + '"'; }
 
   String cp(CP.info i) {
     return i == null ? "null" : switch (i.tag()) {
@@ -414,7 +427,7 @@ public class Decode { // for bc.builder
     };
   }
 
-  String dq(short i) { return "\"" + V[i] + '"'; }
+  String constantPool(int i) { return cp(W[i]); }
 
   class Operation extends Instruction {
 
@@ -468,15 +481,15 @@ public class Decode { // for bc.builder
     @Override void i_1w_2c_x() {
       var i = u1(0);
       if (i == OP_iinc) {
-        t("%04x  %s  %s, %s, %d", o.pc(), n(), "iinc", cp(u2(1)), u2(2) ); // (1,2,2) 'iinc', cp.index, count
+        t("%04x  %s  %s, %s, %d", o.pc(), n(), "iinc", cp(u2(1)), u2(2) ); // (1,2,2) 'iinc', constantPool.index, count
       } else {
-        t("%04x  %s  %s, %s", o.pc(), n(), wide_op(i), cp(u2(1)) ); // (1,2) opcode, cp.index
+        t("%04x  %s  %s, %s", o.pc(), n(), wide_op(i), cp(u2(1)) ); // (1,2) opcode, constantPool.index
       }
     }
 
     CharSequence cp(int i) { return cp.apply(i); }
     CharSequence lv(int i) { return lv.apply(i); }
-    CharSequence jm(int i) { return jm.apply(i); }
+    CharSequence jm(int i) { return jm.apply(i+o.pc()); }
 
     final IntFunction<CharSequence> cp;
     final IntFunction<CharSequence> lv;
