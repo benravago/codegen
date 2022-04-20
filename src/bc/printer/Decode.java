@@ -2,9 +2,11 @@ package bc.printer;
 
 import java.util.List;
 import java.util.ArrayList;
-import java.util.function.Consumer;
+import java.util.Map;
+import java.util.HashMap;
 
 import java.util.Formatter;
+import java.util.function.Consumer;
 import java.util.function.IntFunction;
 
 import java.io.PrintStream;
@@ -14,8 +16,6 @@ import java.nio.file.Paths;
 import bc.ClassFile;
 import static bc.ClassFile.*;
 import static bc.JVMS.*;
-import java.util.HashMap;
-import java.util.Map;
 
 public class Decode { // for bc.builder
 
@@ -88,9 +88,8 @@ public class Decode { // for bc.builder
     if (n < 1) {
       f("# %d interfaces\n", n);
     } else {
-      f("  interfaces( #%d\n", n);
-      g(cf.interfaces(), i -> f("    %s\n", cp(i)) );
-      f("  )\n");
+      f("  interfaces() #%d\n", n);
+      g(cf.interfaces(), i -> f("    add(%s)\n", cp(i)) );
     }
   }
 
@@ -124,7 +123,7 @@ public class Decode { // for bc.builder
       case ATTRIBUTE_StackMapTable -> ed((StackMapTable)a);
         // ATTRIBUTE_Exceptions -> ed((Exceptions)a);
       case ATTRIBUTE_InnerClasses -> ed((InnerClasses)a);
-        // ATTRIBUTE_EnclosingMethod -> ed((EnclosingMethod)a);
+      case ATTRIBUTE_EnclosingMethod -> ed((EnclosingMethod)a);
         // ATTRIBUTE_Synthetic -> ed((Synthetic)a);
       case ATTRIBUTE_Signature -> ed((Signature)a);
       case ATTRIBUTE_SourceFile -> ed((SourceFile)a);
@@ -145,8 +144,8 @@ public class Decode { // for bc.builder
         // ATTRIBUTE_Module -> ed((Module)a);
         // ATTRIBUTE_ModulePackages -> ed((ModulePackages)a);
         // ATTRIBUTE_ModuleMainClass -> ed((ModuleMainClass)a);
-        // ATTRIBUTE_NestHost -> ed((NestHost)a);
-        // ATTRIBUTE_NestMembers -> ed((NestMembers)a);
+      case ATTRIBUTE_NestHost -> ed((NestHost)a);
+      case ATTRIBUTE_NestMembers -> ed((NestMembers)a);
         // ATTRIBUTE_Record -> ed((Record)a);
         // ATTRIBUTE_PermittedSubclasses -> ed((PermittedSubclasses)a);
 
@@ -165,7 +164,7 @@ public class Decode { // for bc.builder
     exceptions(c);
     instructions(c);
     code();
-    f("%s # max stack=%d, locals=%d \n", P, c.maxStack(), c.maxLocals() );
+    f("%s ## max stack=%d, locals=%d \n", P, c.maxStack(), c.maxLocals() );
     p(-2);
   }
 
@@ -231,7 +230,6 @@ public class Decode { // for bc.builder
   }
 
   void attributes(Code c) {
-    f("%s # attributes\n", P);
     c.attributes().forEach(this::attribute);
   }
 
@@ -247,7 +245,9 @@ public class Decode { // for bc.builder
     q(a.types(), i -> f("%s add(%s, 0x%04x) // %s %s\n", P, cp(i.info()), i.flags(), cp(i.outerClass()), cp(i.name()) ));
   }
 
-  // void ed(EnclosingMethod a) { d("%cp TODO: %cp\n", P, a); } # 4.7.7
+  void ed(EnclosingMethod a) { // # 4.7.7
+    f("%s EnclosingMethod(%s, %s)\n", P, cp(a.enclosingClass()), cp(a.type()) );
+  }
 
   // void ed(Synthetic a) { d("%cp TODO: %cp\n", P, a); } # 4.7.8
 
@@ -343,7 +343,7 @@ public class Decode { // for bc.builder
   void ed(MethodParameters a) { // # 4.7.24
     f("%s MethodParameters()\n", P);
     q(a.parameters(), e -> f("%s add(%s, 0x%04x)\n", P, cp(e.name()), e.flags() ));
-  } // add("name",flags);
+  }
 
   // void ed(Module a) { d("%cp TODO: %cp\n", P, a); } # 4.7.25
 
@@ -351,9 +351,14 @@ public class Decode { // for bc.builder
 
   // void ed(ModuleMainClass a) { d("%cp TODO: %cp\n", P, a); } # 4.7.27
 
-  // void ed(NestHost a) { d("%cp TODO: %cp\n", P, a); } # 4.7.28
+  void ed(NestHost a) { // # 4.7.28
+    f("%s NestHost(%s)\n", P, cp(a.hostClass()));
+  }
 
-  // void ed(NestMembers a) { d("%cp TODO: %cp\n", P, a); } # 4.7.29
+  void ed(NestMembers a) { // # 4.7.29
+    f("%s NestMembers()\n", P);
+    q(a.members(), m -> f("%s add(%s)\n", P, cp(W[m.index()]))  );
+  }
 
   // void ed(Record a) { d("%cp TODO: %cp\n", P, a); } # 4.7.30
 
