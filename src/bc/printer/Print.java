@@ -764,7 +764,7 @@ public class Print { // like jdk/bin/javap
       var v = (Integer[])o.args();
       t("%04x  %s  %d, 0x%08x, %d,", o.pc(), n(), v[0], v[1], v[2] ); // pc, op, padding, default, npairs
       for (int i = 3, m = v.length; i < m;) {
-        t( " 0x%08x, 0x%08x%c,", v[i++], v[i++], i < m ? ',' : ' ' ); // match/offset pairs
+        t( " 0x%08x, 0x%08x%c", v[i++], v[i++], i < m ? ',' : ' ' ); // match/offset pairs
       }
     }
 
