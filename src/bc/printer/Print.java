@@ -11,7 +11,7 @@ import bc.ClassFile.Deprecated;
 import static bc.ClassFile.*;
 import static bc.JVMS.*;
 
-public class Print { // javap
+public class Print { // like jdk/bin/javap
 
   public static void main(String...args) throws Exception {
     if (args.length < 1) {
