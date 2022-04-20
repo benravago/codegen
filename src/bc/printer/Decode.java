@@ -4,6 +4,9 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.function.Consumer;
 
+import java.util.Formatter;
+import java.util.function.IntFunction;
+
 import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -168,7 +171,7 @@ public class Decode { // for bc.builder
   void line(short o, byte w, String t) { lines.add(new item(o,w,t)); }
 
   static final byte
-    LABEL  = 0,
+    LABEL = 0,
     START = 2, END = 3, HANDLE = 4,
     INSTRUCTION = 6;
 
@@ -181,7 +184,7 @@ public class Decode { // for bc.builder
     q(lines, l -> f("%s %s\n", P, l.text) );
   }
 
-  Instruction op = new Instruction(
+  Operation op = new Operation(
     ci -> cp(W[ci]), lv -> "&"+lv, jm -> ">"+jm
   );
 
@@ -286,8 +289,16 @@ public class Decode { // for bc.builder
 
   // void ed(PermittedSubclasses a) { d("%cp TODO: %cp\n", P, a); } # 4.7.31
 
+  String P = " ";
+
+  void p(int n) { P = "                     ".substring(0,P.length()+n); }
+  <T> void q(Iterable<T> i, Consumer<T> c) { p(+2); for (var t:i) c.accept(t); p(-2); }
+
+  void f(String format, Object... args) { out.format(format,args); }
+  <T> void g(Iterable<T> i, Consumer<T> c) { for (var t:i) c.accept(t); }
+
   String cp(CP.info i) {
-    return switch (i.tag()) {
+    return i == null ? "null" : switch (i.tag()) {
 
       case CONSTANT_Utf8 // 1
         -> dq( i.index() );
@@ -330,12 +341,71 @@ public class Decode { // for bc.builder
 
   String dq(short i) { return "\"" + V[i] + '"'; }
 
-  String P = " ";
+  class Operation extends Instruction {
 
-  void p(int n) { P = "                     ".substring(0,P.length()+n); }
-  <T> void q(Iterable<T> i, Consumer<T> c) { p(+2); for (var t:i) c.accept(t); p(-2); }
+    Operation(IntFunction<CharSequence> constantPool, IntFunction<CharSequence> localVariable, IntFunction<CharSequence> codeOffset) {
+      cp = constantPool; lv = localVariable; jm = codeOffset;
+      s = new StringBuilder();
+      t = new Formatter(s);
+    }
 
-  void f(String format, Object... args) { out.format(format,args); }
-  <T> void g(Iterable<T> i, Consumer<T> c) { for (var t:i) c.accept(t); }
+    final StringBuilder s;
+
+    CharSequence format(Opcode opcode) {
+      o = opcode;
+      s.setLength(0);
+      edit();
+      return s;
+    }
+
+    @Override void i_        () { t( "_%s()"         , n()                   ); }
+    @Override void i_1b      () { t( "_%s(%d)"       , n(), u1()             ); }
+    @Override void i_2s      () { t( "_%s(%d)"       , n(), u2()             ); }
+    @Override void i_1c      () { t( "_%s(%s)"       , n(), cp(u1())         ); }
+    @Override void i_2c      () { t( "_%s(%s)"       , n(), cp(u2())         ); }
+    @Override void i_2c_1d   () { t( "_%s(%s,%d)"    , n(), cp(u2(0)), u1(1) ); }
+    @Override void i_1v      () { t( "_%s(%s)"       , n(), lv(u1())         ); }
+    @Override void i_1v_1d   () { t( "_%s(%s,%d)"    , n(), lv(u1(0)), u1(1) ); }
+    @Override void i_1t      () { t( "_%s(+%d)"      , n(), u1()             ); }
+    @Override void i_2j      () { t( "_%s(%s)"       , n(), jm(u2())         ); }
+    @Override void i_4j      () { t( "_%s(%s)"       , n(), jm(u4())         ); }
+    @Override void i_2c_1d_0 () { t( "_%s(%s,%d)"    , n(), cp(u2(0)), u1(1) ); }
+    @Override void i_2c_0_0  () { t( "_%s(%s)"       , n(), cp(u2(0))        ); }
+
+    @Override void i_p_4d_4d_4d_x() {
+      var v = (Integer[])o.args();
+      t.format("%04x  %s  %d,", o.pc(), n(), v[0] ); // pc, op, padding
+      for (int i = 1, m = v.length; i < m; i++) {
+        t.format( " 0x%08x,", v[i] ); // default, low, high, jump offsets
+      }
+      s.setLength(s.length()-1); // remove trailing ','
+    }
+
+    @Override void i_p_4d_4d_x() {
+      var v = (Integer[])o.args();
+      t("%04x  %s  %d, 0x%08x, %d,", o.pc(), n(), v[0], v[1], v[2] ); // pc, op, padding, default, npairs
+      for (int i = 3, m = v.length; i < m;) {
+        t( " 0x%08x, 0x%08x,", v[i++], v[i++] ); // match/offset pairs
+      }
+      s.setLength(s.length()-1); // remove trailing ','
+    }
+
+    @Override void i_1w_2c_x() {
+      var i = u1(0);
+      if (i == OP_iinc) {
+        t("%04x  %s  %s, %s, %d", o.pc(), n(), "iinc", cp(u2(1)), u2(2) ); // (1,2,2) 'iinc', cp.index, count
+      } else {
+        t("%04x  %s  %s, %s", o.pc(), n(), wide_op(i), cp(u2(1)) ); // (1,2) opcode, cp.index
+      }
+    }
+
+    CharSequence cp(int i) { return cp.apply(i); }
+    CharSequence lv(int i) { return lv.apply(i); }
+    CharSequence jm(int i) { return jm.apply(i); }
+
+    final IntFunction<CharSequence> cp;
+    final IntFunction<CharSequence> lv;
+    final IntFunction<CharSequence> jm;
+  }
 
 }

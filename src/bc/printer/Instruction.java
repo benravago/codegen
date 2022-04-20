@@ -1,24 +1,16 @@
 package bc.printer;
 
 import java.util.Formatter;
-import java.util.function.IntFunction;
 
 import bc.ClassFile.Opcode;
 import static bc.JVMS.*;
 
-class Instruction {
+abstract class Instruction {
 
-  Instruction(IntFunction<CharSequence> constantPool, IntFunction<CharSequence> localVariable, IntFunction<CharSequence> codeOffset) {
-    cp = constantPool; lv = localVariable; jm = codeOffset;
-  }
+  protected Opcode o; // injected by format()
+  protected Formatter t; // injected by formatTo()
 
-  StringBuilder s = new StringBuilder();
-  Formatter f = new Formatter(s);
-  Opcode o; // injected by format()
-
-  CharSequence format(Opcode opcode) {
-    o = opcode;
-    s.setLength(0);
+  void edit() {
     switch (o.op()) {
       case OP_nop             -> i_             (); // 00
       case OP_aconst_null     -> i_             (); // 01
@@ -226,60 +218,28 @@ class Instruction {
       case OP_impdep1         -> i_             (); // fe
       case OP_impdep2         -> i_             (); // ff
     }
-    return s;
   }
 
-  void i_        () { f( "_%s()"         , n()                   ); } //  -
-  void i_1b      () { f( "_%s(%d)"       , n(), u1()             ); } //  (1)  byte
-  void i_2s      () { f( "_%s(%d)"       , n(), u2()             ); } //  (2)  short
-  void i_1c      () { f( "_%s(%s)"       , n(), cp(u1())         ); } //  (1)  cp.index
-  void i_2c      () { f( "_%s(%s)"       , n(), cp(u2())         ); } //  (2)  cp.index
-  void i_2c_1d   () { f( "_%s(%s,%d)"    , n(), cp(u2(0)), u1(1) ); } //  (2,1)  cp.index, const
-  void i_1v      () { f( "_%s(%s)"       , n(), lv(u1())         ); } //  (1)  lv.index
-  void i_1v_1d   () { f( "_%s(%s,%d)"    , n(), lv(u1(0)), u1(1) ); } //  (1,1)  lv.index, const
-  void i_1t      () { f( "_%s(+%d)"      , n(), u1()             ); } //  (1)  atype
-  void i_2j      () { f( "_%s(%s)"       , n(), jm(u2())         ); } //  (2)  branch
-  void i_4j      () { f( "_%s(%s)"       , n(), jm(u4())         ); } //  (4)  branch
-  void i_2c_1d_0 () { f( "_%s(%s,%d)"    , n(), cp(u2(0)), u1(1) ); } //  (2,1,0)  cp.index, count, 0
-  void i_2c_0_0  () { f( "_%s(%s)"       , n(), cp(u2(0))        ); } //  (2,0,0)  cp.index, 0, 0
+  abstract void i_             (); //  -
+  abstract void i_1b           (); //  (1)  byte
+  abstract void i_2s           (); //  (2)  short
+  abstract void i_1c           (); //  (1)  cp.index
+  abstract void i_2c           (); //  (2)  cp.index
+  abstract void i_2c_1d        (); //  (2,1)  cp.index, const
+  abstract void i_1v           (); //  (1)  lv.index
+  abstract void i_1v_1d        (); //  (1,1)  lv.index, const
+  abstract void i_1t           (); //  (1)  atype
+  abstract void i_2j           (); //  (2)  branch
+  abstract void i_4j           (); //  (4)  branch
+  abstract void i_2c_1d_0      (); //  (2,1,0)  cp.index, count, 0
+  abstract void i_2c_0_0       (); //  (2,0,0)  cp.index, 0, 0
 
-  void i_p_4d_4d_4d_x() {
-    var v = (Integer[])o.args();
-    f.format("%04x  %s  %d,", o.pc(), n(), v[0] ); // pc, op, padding
-    for (int i = 1, m = v.length; i < m; i++) {
-      f.format( " 0x%08x,", v[i] ); // default, low, high, jump offsets
-    }
-    s.setLength(s.length()-1); // remove trailing ','
-  }
+  abstract void i_p_4d_4d_4d_x (); //  (0-3,4,4,4,...) padding, default, low, high, jump offsets
+  abstract void i_p_4d_4d_x    (); //  (0-3,4,4,...)  padding, default, npairs, match/offset pairs
 
-  void i_p_4d_4d_x() {
-    var v = (Integer[])o.args();
-    f.format("%04x  %s  %d, 0x%08x, %d,", o.pc(), n(), v[0], v[1], v[2] ); // pc, op, padding, default, npairs
-    for (int i = 3, m = v.length; i < m;) {
-      f.format( " 0x%08x, 0x%08x,", v[i++], v[i++] ); // match/offset pairs
-    }
-    s.setLength(s.length()-1); // remove trailing ','
-  }
+  abstract void i_1w_2c_x      (); //  (1,2 | 1,2,2)  opcode, cp.index | iinc, cp.index, count
 
-  void i_1w_2c_x() {
-    var i = u1(0);
-    if (i == OP_iinc) {
-      f.format("%04x  %s  %s, %s, %d" , o.pc(), n(), "iinc", cp(u2(1)), u2(2) ); // (1,2,2) 'iinc', cp.index, count
-    } else {
-      f.format("%04x  %s  %s, %s" , o.pc(), n(), wide_op(i), cp(u2(1)) ); // (1,2) opcode, cp.index
-    }
-  }
-
-  String wide_op(byte i) {
-    return switch(i) {
-      case OP_iload, OP_fload, OP_aload, OP_lload, OP_dload,
-           OP_istore, OP_fstore, OP_astore, OP_lstore, OP_dstore,
-           OP_ret -> name[i];
-      default -> throw new IllegalArgumentException("wide_op="+i);
-    };
-  }
-
-  void f(String format, Object... args) { f.format(format,args); }
+  void t(String format, Object... args) { t.format(format,args); }
 
   Byte    u1() { return (Byte)   o.args(); }
   Short   u2() { return (Short)  o.args(); }
@@ -288,16 +248,30 @@ class Instruction {
   Byte  u1(int i) { return (Byte) ((Object[])o.args())[i]; }
   Short u2(int i) { return (Short)((Object[])o.args())[i]; }
 
-  CharSequence cp(int i) { return cp.apply(i); }
-  CharSequence lv(int i) { return lv.apply(i); }
-  CharSequence jm(int i) { return jm.apply(i); }
-
-  final IntFunction<CharSequence> cp;
-  final IntFunction<CharSequence> lv;
-  final IntFunction<CharSequence> jm;
-
-  final static String name[] = Names.byOpcode();
-
   String n() { return name[o.op() & 0x0ff]; }
+
+  final static String name[];
+  static {
+    name = new String[256];
+    try {
+      for (var f:bc.JVMS.class.getFields()) {
+        var n = f.getName();
+        if (n.startsWith("OP_")) {
+          var b = (Byte) f.get(null);
+          name[b & 0x0ff] = n.substring(3);
+        }
+      }
+    }
+    catch (Exception x) { throw new UnsupportedOperationException(x.toString()); }
+  }
+
+  static String wide_op(byte op) {
+    return switch(op) {
+      case OP_iload, OP_fload, OP_aload, OP_lload, OP_dload,
+           OP_istore, OP_fstore, OP_astore, OP_lstore, OP_dstore,
+           OP_ret -> name[op & 0x0ff];
+      default -> throw new IllegalArgumentException("wide_op="+op);
+    };
+  }
 
 }

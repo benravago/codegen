@@ -1,5 +1,8 @@
 package bc.printer;
 
+import java.util.Formatter;
+import java.util.Formattable;
+
 import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -720,6 +723,63 @@ public class Print { // like jdk/bin/javap
   void ed(PermittedSubclasses a) {
     f("%s %s\n", P, a);
     for (var s:a.subclasses()) f("%s  %s\n", P, s);
+  }
+
+  class Operation extends Instruction implements Formattable {
+
+    Formattable format(Opcode opcode) {
+      o = opcode;
+      return this;
+    }
+
+    @Override
+    public void formatTo(Formatter formatter, int flags, int width, int precision) {
+      t = formatter;
+      edit();
+    }
+
+    @Override void i_        () { t( "%s"            , n()                   ); }
+    @Override void i_1b      () { t( "%s  %d"        , n(), u1()             ); }
+    @Override void i_2s      () { t( "%s  %d"        , n(), u2()             ); }
+    @Override void i_1c      () { t( "%s  %s"        , n(), cp(u1())         ); }
+    @Override void i_2c      () { t( "%s  %s"        , n(), cp(u2())         ); }
+    @Override void i_2c_1d   () { t( "%s  %s, %d"    , n(), cp(u2(0)), u1(1) ); }
+    @Override void i_1v      () { t( "%s  %s"        , n(), lv(u1())         ); }
+    @Override void i_1v_1d   () { t( "%s  %s, %d"    , n(), lv(u1(0)), u1(1) ); }
+    @Override void i_1t      () { t( "%s  =%d"       , n(), u1()             ); }
+    @Override void i_2j      () { t( "%s  >%04x"     , n(), jm(u2())         ); }
+    @Override void i_4j      () { t( "%s  >%08x"     , n(), jm(u4())         ); }
+    @Override void i_2c_1d_0 () { t( "%s  %s, %d, 0" , n(), cp(u2(0)), u1(1) ); }
+    @Override void i_2c_0_0  () { t( "%s  %s, 0, 0"  , n(), cp(u2(0))        ); }
+
+    @Override void i_p_4d_4d_4d_x() {
+      var v = (Integer[])o.args();
+      t("%04x  %s  %d,", o.pc(), n(), v[0] ); // pc, op, padding
+      for (int i = 1, m = v.length; i < m;) {
+        t( " 0x%08x%c", v[i++], i < m ? ',' : ' '); // default, low, high, jump offsets
+      }
+    }
+
+    @Override void i_p_4d_4d_x() {
+      var v = (Integer[])o.args();
+      t("%04x  %s  %d, 0x%08x, %d,", o.pc(), n(), v[0], v[1], v[2] ); // pc, op, padding, default, npairs
+      for (int i = 3, m = v.length; i < m;) {
+        t( " 0x%08x, 0x%08x%c,", v[i++], v[i++], i < m ? ',' : ' ' ); // match/offset pairs
+      }
+    }
+
+    @Override void i_1w_2c_x() {
+      var i = u1(0);
+      if (i == OP_iinc) {
+        t("%04x  %s  %s, %s, %d", o.pc(), n(), "iinc", cp(u2(1)), u2(2) ); // (1,2,2) 'iinc', cp.index, count
+      } else {
+        t("%04x  %s  %s, %s", o.pc(), n(), wide_op(i), cp(u2(1)) ); // (1,2) opcode, cp.index
+      }
+    }
+
+    CharSequence cp(int i) { return "#"+i; }
+    CharSequence lv(int i) { return "$"+i; }
+    int          jm(int i) { return i;     }
   }
 
 }
