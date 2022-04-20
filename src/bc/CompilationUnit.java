@@ -295,6 +295,9 @@ public interface CompilationUnit {
 
     Code $(int n);                            // line number and/or jump offset label
 
+    Code $var(int index, String name, String... info); // descriptor, signature
+    Code $drop(int... index);
+
     Code $start(int n);
     Code $end(int n);
     Code $handle(int n, Object type);

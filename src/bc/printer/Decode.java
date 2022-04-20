@@ -72,10 +72,10 @@ public class Decode { // for bc.builder
         V[n] = switch(v.tag()) {
           case CONSTANT_Utf8 -> cf.chars(v.offset(),((CP.Utf8)v).length());
           case CONSTANT_Integer -> cf.int32(v.offset());
-          case CONSTANT_Float -> Float.floatToIntBits(cf.int32(v.offset()));
+          case CONSTANT_Float -> Float.intBitsToFloat(cf.int32(v.offset()));
           case CONSTANT_Long -> cf.int64(v.offset());
           case CONSTANT_Double -> Double.longBitsToDouble(cf.int64(v.offset()));
-          default -> null;
+          default -> null; // should not occur
         };
       }
     }
@@ -129,7 +129,7 @@ public class Decode { // for bc.builder
         // ATTRIBUTE_SourceDebugExtension -> ed((SourceDebugExtension)a);
       case ATTRIBUTE_LineNumberTable -> ed((LineNumberTable)a);
       case ATTRIBUTE_LocalVariableTable -> ed((LocalVariableTable)a);
-        // ATTRIBUTE_LocalVariableTypeTable -> ed((LocalVariableTypeTable)a);
+      case ATTRIBUTE_LocalVariableTypeTable -> ed((LocalVariableTypeTable)a);
         // ATTRIBUTE_Deprecated -> ed((Deprecated)a);
       case ATTRIBUTE_RuntimeVisibleAnnotations -> ed((RuntimeVisibleAnnotations)a);
         // ATTRIBUTE_RuntimeInvisibleAnnotations -> ed((RuntimeInvisibleAnnotations)a);
@@ -166,9 +166,9 @@ public class Decode { // for bc.builder
     p(-2);
   }
 
-  List<item> lines;
-  record item(short offset, byte weight, String text) {}
-  void line(short o, byte w, String t) { lines.add(new item(o,w,t)); }
+  List<line> lines;
+  record line(short offset, byte weight, String text) {}
+  void line(short o, byte w, String t) { lines.add(new line(o,w,t)); }
 
   static final byte
     LABEL = 0,
@@ -241,14 +241,19 @@ public class Decode { // for bc.builder
     }
   }
 
-  void ed(LocalVariableTable t) { // # 4.7.13
+  void ed(LocalVariableTable a) { // # 4.7.13
     f("%s LocalVariableTable()\n", P);
-    q(t.locals(), l -> f("%s add(%d, %s, %s) # %04x:%04x\n",
-       P, l.index(), cp(l.name()), cp(l.descriptor()), l.pc(), l.pc()+l.len() )
+    q(a.locals(), v -> f("%s add(%d, %s, %s) # %04x:%04x\n",
+       P, v.index(), cp(v.name()), cp(v.descriptor()), v.pc(), v.pc()+v.len() )
     );
   }
 
-  // void ed(LocalVariableTypeTable a) { d("%cp TODO: %cp\n", P, a); } # 4.7.14
+  void ed(LocalVariableTypeTable a) { // # 4.7.14
+    f("%s LocalVariableTypeTable()\n", P);
+    q(a.types(), v -> f("%s add(%d, %s, %s) # %04x:%04x\n",
+       P, v.index(), cp(v.name()), cp(v.signature()), v.pc(), v.pc()+v.len() )
+    );
+  } 
 
   // void ed(Deprecated a) { d("%cp TODO: %cp\n", P, a); } # 4.7.15
 
@@ -335,7 +340,7 @@ public class Decode { // for bc.builder
       case CONSTANT_Dynamic, CONSTANT_InvokeDynamic // 17, 18
         -> "#"+i.index()+"/"+i.tag(); // TODO:
 
-      default -> "?"+i.tag()+'='+V[i.index()];
+      default -> throw new UnsupportedOperationException(i.toString());
     };
   }
 

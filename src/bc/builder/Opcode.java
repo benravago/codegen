@@ -25,6 +25,9 @@ class Opcode extends Instruction implements Code {
 
   @Override public Code $(int n) { return this; }
 
+  @Override public Code $var(int index, String name, String... info) { return this; }
+  @Override public Code $drop(int... index) { return this; }
+
   @Override public Code $start(int n) { return this; }
   @Override public Code $end(int n) { return this; }
   @Override public Code $handle(int n, Object type) { return this; }
