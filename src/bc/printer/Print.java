@@ -771,9 +771,9 @@ public class Print { // like jdk/bin/javap
     @Override void i_1w_2c_x() {
       var i = u1(0);
       if (i == OP_iinc) {
-        t("%04x  %s  %s, %s, %d", o.pc(), n(), "iinc", cp(u2(1)), u2(2) ); // (1,2,2) 'iinc', cp.index, count
+        t("%04x  %s  %s, %s, %d", o.pc(), n(), "iinc", cp(u2(1)), u2(2) );
       } else {
-        t("%04x  %s  %s, %s", o.pc(), n(), wide_op(i), cp(u2(1)) ); // (1,2) opcode, cp.index
+        t("%04x  %s  %s, %s", o.pc(), n(), wide_op(i), cp(u2(1)) );
       }
     }
 

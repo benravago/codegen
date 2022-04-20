@@ -153,7 +153,7 @@ public class Decode { // for bc.builder
     }
   }
 
-  // void ed(ConstantValue a) { d("%constantPool TODO: %constantPool\n", P, a); } # 4.7.2
+  // void ed(ConstantValue a) { d("%s TODO: %s\n", P, a); } # 4.7.2
 
   void ed(Code c) { // # 4.7.3
     f("%s Code()\n", P);
@@ -236,7 +236,7 @@ public class Decode { // for bc.builder
     q(a.entries(), e -> f("%s # %s\n", P, e) );
   }
 
-  // void ed(Exceptions a) { d("%constantPool TODO: %constantPool\n", P, a); } # 4.7.5
+  // void ed(Exceptions a) { d("%s TODO: %s\n", P, a); } # 4.7.5
 
   void ed(InnerClasses a) { // # 4.7.6
     f("%s InnerClasses()\n", P);
@@ -247,7 +247,7 @@ public class Decode { // for bc.builder
     f("%s EnclosingMethod(%s, %s)\n", P, cp(a.enclosingClass()), cp(a.type()) );
   }
 
-  // void ed(Synthetic a) { d("%constantPool TODO: %constantPool\n", P, a); } # 4.7.8
+  // void ed(Synthetic a) { d("%s TODO: %s\n", P, a); } # 4.7.8
 
   void ed(Signature a) { // # 4.7.9
     f("%s Signature(%s)\n", P, cp(a.signature()));
@@ -257,7 +257,7 @@ public class Decode { // for bc.builder
     f("%s SourceFile(%s)\n", P, cp(a.sourcefile()));
   }
 
-  // void ed(SourceDebugExtension a) { d("%constantPool TODO: %constantPool\n", P, a); } # 4.7.11
+  // void ed(SourceDebugExtension a) { d("%s TODO: %s\n", P, a); } # 4.7.11
 
   void ed(LineNumberTable t) { // # 4.7.12
     for (var i:t.lines()) {
@@ -265,9 +265,9 @@ public class Decode { // for bc.builder
     }
   }
 
-  String codeOffset(int i) {
-    var offset = "0x%04x".formatted(i);
-    line((short)i, LABEL, "$("+offset+')' );
+  String codeOffset(int jm) {
+    var offset = "0x%04x".formatted(jm);
+    line((short)jm, LABEL, "$("+offset+')' );
     return offset;
   }
 
@@ -324,43 +324,43 @@ public class Decode { // for bc.builder
     v.append(index).append(',');
   }
 
-  String localVariable(int i) {
-    var v = defs.get((short)i);
-    return v != null ? cp(v.name) : "&"+i;
+  String localVariable(int lv) {
+    var v = defs.get((short)lv);
+    return v != null ? cp(v.name) : "&"+lv;
   }
 
 
 
-  // void ed(Deprecated a) { d("%constantPool TODO: %constantPool\n", P, a); } # 4.7.15
+  // void ed(Deprecated a) { d("%s TODO: %s\n", P, a); } # 4.7.15
 
   void ed(RuntimeVisibleAnnotations a) { // # 4.7.16
     f("%s TODO: %s\n", P, a);
   }
 
-  // void ed(RuntimeInvisibleAnnotations a) { d("%constantPool TODO: %constantPool\n", P, a); } # 4.7.17
+  // void ed(RuntimeInvisibleAnnotations a) { d("%s TODO: %s\n", P, a); } # 4.7.17
 
-  // void ed(RuntimeVisibleParameterAnnotations a) { d("%constantPool TODO: %constantPool\n", P, a); } # 4.7.18
+  // void ed(RuntimeVisibleParameterAnnotations a) { d("%s TODO: %s\n", P, a); } # 4.7.18
 
-  // void ed(RuntimeInvisibleParameterAnnotations a) { d("%constantPool TODO: %constantPool\n", P, a); } # 4.7.19
+  // void ed(RuntimeInvisibleParameterAnnotations a) { d("%s TODO: %s\n", P, a); } # 4.7.19
 
-  // void ed(RuntimeVisibleTypeAnnotations a) { d("%constantPool TODO: %constantPool\n", P, a); } # 4.7.20
+  // void ed(RuntimeVisibleTypeAnnotations a) { d("%s TODO: %s\n", P, a); } # 4.7.20
 
-  // void ed(RuntimeInvisibleTypeAnnotations a) { d("%constantPool TODO: %constantPool\n", P, a); } # 4.7.21
+  // void ed(RuntimeInvisibleTypeAnnotations a) { d("%s TODO: %s\n", P, a); } # 4.7.21
 
-  // void ed(AnnotationDefault a) { d("%constantPool TODO: %constantPool\n", P, a); } # 4.7.22
+  // void ed(AnnotationDefault a) { d("%s TODO: %s\n", P, a); } # 4.7.22
 
-  // void ed(BootstrapMethods a) { d("%constantPool TODO: %constantPool\n", P, a); } # 4.7.23
+  // void ed(BootstrapMethods a) { d("%s TODO: %s\n", P, a); } # 4.7.23
 
   void ed(MethodParameters a) { // # 4.7.24
     f("%s MethodParameters()\n", P);
     q(a.parameters(), e -> f("%s add(%s, 0x%04x)\n", P, cp(e.name()), e.flags() ));
   }
 
-  // void ed(Module a) { d("%constantPool TODO: %constantPool\n", P, a); } # 4.7.25
+  // void ed(Module a) { d("%s TODO: %s\n", P, a); } # 4.7.25
 
-  // void ed(ModulePackages a) { d("%constantPool TODO: %constantPool\n", P, a); } # 4.7.26
+  // void ed(ModulePackages a) { d("%s TODO: %s\n", P, a); } # 4.7.26
 
-  // void ed(ModuleMainClass a) { d("%constantPool TODO: %constantPool\n", P, a); } # 4.7.27
+  // void ed(ModuleMainClass a) { d("%s TODO: %s\n", P, a); } # 4.7.27
 
   void ed(NestHost a) { // # 4.7.28
     f("%s NestHost(%s)\n", P, cp(a.hostClass()));
@@ -368,12 +368,12 @@ public class Decode { // for bc.builder
 
   void ed(NestMembers a) { // # 4.7.29
     f("%s NestMembers()\n", P);
-    q(a.members(), m -> f("%s add(%s)\n", P, constantPool(m.index()))  );
+    q(a.members(), m -> f("%s add(%s)\n", P, cp(m))  );
   }
 
-  // void ed(Record a) { d("%constantPool TODO: %constantPool\n", P, a); } # 4.7.30
+  // void ed(Record a) { d("%s TODO: %s\n", P, a); } # 4.7.30
 
-  // void ed(PermittedSubclasses a) { d("%constantPool TODO: %constantPool\n", P, a); } # 4.7.31
+  // void ed(PermittedSubclasses a) { d("%s TODO: %s\n", P, a); } # 4.7.31
 
   String P = " ";
 
@@ -427,7 +427,7 @@ public class Decode { // for bc.builder
     };
   }
 
-  String constantPool(int i) { return cp(W[i]); }
+  String constantPool(int ci) { return cp(W[ci]); }
 
   class Operation extends Instruction {
 
@@ -481,9 +481,9 @@ public class Decode { // for bc.builder
     @Override void i_1w_2c_x() {
       var i = u1(0);
       if (i == OP_iinc) {
-        t("%04x  %s  %s, %s, %d", o.pc(), n(), "iinc", cp(u2(1)), u2(2) ); // (1,2,2) 'iinc', constantPool.index, count
+        t("%04x  %s  %s, %s, %d", o.pc(), n(), "iinc", cp(u2(1)), u2(2) );
       } else {
-        t("%04x  %s  %s, %s", o.pc(), n(), wide_op(i), cp(u2(1)) ); // (1,2) opcode, constantPool.index
+        t("%04x  %s  %s, %s", o.pc(), n(), wide_op(i), cp(u2(1)) );
       }
     }
 
