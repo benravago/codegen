@@ -50,7 +50,7 @@ class Constant {
    *    u1 tag
    *    u1 info[]
    */
-  static CP.Info info(Span a, short i) {
+  static CP.info info(Span a, short i) {
     var tag = a.u1();
     return switch(tag) {
       case CONSTANT_Utf8 -> utf8_info(a,i);

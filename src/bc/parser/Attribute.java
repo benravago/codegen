@@ -33,7 +33,7 @@ class Attribute {
     return z;
   }
 
-  CP.Info cp(Span a)  {
+  CP.info cp(Span a)  {
     var i = a.u2();
     return i > 0 ? bc.cp_info(i) : null;
   }
@@ -389,7 +389,7 @@ class Attribute {
     return bc.span(start,a.p);
   }
 
-  Iterable<CP.Info> uses(int count, Span span) {
+  Iterable<CP.info> uses(int count, Span span) {
     return Iter.of(count, span, a -> cp(a) );
   }
 

@@ -6,12 +6,12 @@ public interface ClassFile {
   short                   minor();
   short                   major();
   short                   constantCount();
-  Iterable<CP.Info>       constantPool();
+  Iterable<CP.info>       constants();
   short                   flags();
-  CP.Info                 type();
-  CP.Info                 superType();
+  CP.info                 type();
+  CP.info                 superType();
   short                   interfacesCount();
-  Iterable<CP.Info>       interfaces();
+  Iterable<CP.info>       interfaces();
   short                   fieldsCount();
   Iterable<FieldInfo>     fields();
   short                   methodsCount();
@@ -23,33 +23,37 @@ public interface ClassFile {
 
   interface CP {
 
-    interface Info { byte tag(); short index(); }
+    interface info { byte tag(); short index(); }
+    interface name extends info { short name(); }
+    interface value extends info { short offset(); }
+    interface ref extends info { short classRef(); short namedType(); }
+    interface func extends info { short bootstrapMethod(); short namedType(); }
 
-    record Utf8(byte tag, short index, short offset, short length) implements Info {}
+    record Utf8(byte tag, short index, short offset, short length) implements value {}
 
-    record Integer(byte tag, short index, short offset) implements Info {}
-    record Float(byte tag, short index, short offset) implements Info {}
-    record Long(byte tag, short index, short offset) implements Info {}
-    record Double(byte tag, short index, short offset) implements Info {}
+    record Integer(byte tag, short index, short offset) implements value {}
+    record Float(byte tag, short index, short offset) implements value {}
+    record Long(byte tag, short index, short offset) implements value {}
+    record Double(byte tag, short index, short offset) implements value {}
 
-    record String(byte tag, short index, short string) implements Info {}
+    record String(byte tag, short index, short string) implements info {}
 
-    record Class(byte tag, short index, short name) implements Info {}
-    record Module(byte tag, short index, short name) implements Info {}
-    record Package(byte tag, short index, short name) implements Info {}
+    record Class(byte tag, short index, short name) implements name {}
+    record Module(byte tag, short index, short name) implements name {}
+    record Package(byte tag, short index, short name) implements name {}
 
-    record MethodType(byte tag, short index, short descriptor) implements Info {}
+    record MethodType(byte tag, short index, short descriptor) implements info {}
 
-    record NameAndType(byte tag, short index, short name, short descriptor) implements Info {}
+    record NameAndType(byte tag, short index, short name, short descriptor) implements name {}
 
-    record Field(byte tag, short index, short classRef, short namedType) implements Info {}
-    record Method(byte tag, short index, short classRef, short namedType) implements Info {}
-    record InterfaceMethod(byte tag, short index, short classRef, short namedType) implements Info {}
+    record Field(byte tag, short index, short classRef, short namedType) implements ref {}
+    record Method(byte tag, short index, short classRef, short namedType) implements ref {}
+    record InterfaceMethod(byte tag, short index, short classRef, short namedType) implements ref {}
 
-    record MethodHandle(byte tag, short index, byte kind, short reference) implements Info {}
+    record MethodHandle(byte tag, short index, byte kind, short reference) implements info {}
 
-    record Dynamic(byte tag, short index, short bootstrapMethod, short namedType) implements Info {}
-    record InvokeDynamic(byte tag, short index, short bootstrapMethod, short namedType) implements Info {}
+    record Dynamic(byte tag, short index, short bootstrapMethod, short namedType) implements func {}
+    record InvokeDynamic(byte tag, short index, short bootstrapMethod, short namedType) implements func {}
   }
 
   // to get cp_info values
@@ -60,44 +64,44 @@ public interface ClassFile {
 
   // class members
 
-  record FieldInfo(short flags, CP.Info name, CP.Info descriptor, Iterable<AttributeInfo> attributes) {}
-  record MethodInfo(short flags, CP.Info name, CP.Info descriptor, Iterable<AttributeInfo> attributes) {}
+  record FieldInfo(short flags, CP.info name, CP.info descriptor, Iterable<AttributeInfo> attributes) {}
+  record MethodInfo(short flags, CP.info name, CP.info descriptor, Iterable<AttributeInfo> attributes) {}
 
   interface AttributeInfo { byte tag(); }
   interface Iteration<T> extends Iterable<T> { int size(); }
 
   record ConstantValue(byte tag, Object value) implements AttributeInfo {}
-  record Exceptions(byte tag, Iterable<CP.Info> types) implements AttributeInfo {}
-  record EnclosingMethod(byte tag, CP.Info enclosingClass, CP.Info type) implements AttributeInfo {}
+  record Exceptions(byte tag, Iterable<CP.info> types) implements AttributeInfo {}
+  record EnclosingMethod(byte tag, CP.info enclosingClass, CP.info type) implements AttributeInfo {}
   record Synthetic(byte tag) implements AttributeInfo {}
-  record Signature(byte tag, CP.Info signature) implements AttributeInfo {}
-  record SourceFile(byte tag, CP.Info sourcefile) implements AttributeInfo {}
+  record Signature(byte tag, CP.info signature) implements AttributeInfo {}
+  record SourceFile(byte tag, CP.info sourcefile) implements AttributeInfo {}
   record SourceDebugExtension(byte tag, byte[] debugExtension) implements AttributeInfo {}
   record Deprecated(byte tag) implements AttributeInfo {}
-  record NestHost(byte tag, CP.Info hostClass) implements AttributeInfo {}
-  record NestMembers(byte tag, Iterable<CP.Info> members) implements AttributeInfo {}
-  record PermittedSubclasses(byte tag, Iterable<CP.Info> subclasses) implements AttributeInfo {}
+  record NestHost(byte tag, CP.info hostClass) implements AttributeInfo {}
+  record NestMembers(byte tag, Iterable<CP.info> members) implements AttributeInfo {}
+  record PermittedSubclasses(byte tag, Iterable<CP.info> subclasses) implements AttributeInfo {}
 
   record LineNumberTable(byte tag, Iterable<LineNumber> lines) implements AttributeInfo {}
   record LineNumber(short pc, short n) {}
 
   record InnerClasses(byte tag, Iterable<InnerClass> types) implements AttributeInfo {}
-  record InnerClass(CP.Info info, CP.Info outerClass, CP.Info name, short flags) {}
+  record InnerClass(CP.info info, CP.info outerClass, CP.info name, short flags) {}
 
   record LocalVariableTable(byte tag, Iterable<LocalVariable> locals) implements AttributeInfo {}
-  record LocalVariable(short pc, short len, CP.Info name, CP.Info descriptor, short index) {}
+  record LocalVariable(short pc, short len, CP.info name, CP.info descriptor, short index) {}
 
   record LocalVariableTypeTable(byte tag, Iterable<LocalVariableType> types) implements AttributeInfo {}
-  record LocalVariableType(short pc, short len, CP.Info name, CP.Info signature, short index) {}
+  record LocalVariableType(short pc, short len, CP.info name, CP.info signature, short index) {}
 
   record BootstrapMethods(byte tag, Iterable<BootstrapMethod> methods) implements AttributeInfo {}
-  record BootstrapMethod(CP.Info ref, Iterable<CP.Info> arguments) {}
+  record BootstrapMethod(CP.info ref, Iterable<CP.info> arguments) {}
 
   record MethodParameters(byte tag, Iterable<MethodParameter> parameters) implements AttributeInfo {}
-  record MethodParameter(CP.Info name, short flags) {}
+  record MethodParameter(CP.info name, short flags) {}
 
   record Record(byte tag, Iterable<RecordComponent> components) implements AttributeInfo {}
-  record RecordComponent(CP.Info name, CP.Info descriptor, Iterable<AttributeInfo> attributes) {}
+  record RecordComponent(CP.info name, CP.info descriptor, Iterable<AttributeInfo> attributes) {}
 
   record Code(
     byte tag,
@@ -109,27 +113,27 @@ public interface ClassFile {
   ) implements AttributeInfo{}
 
   record Opcode(short pc, byte op, Object args) {}
-  record Except(short start, short end, short handler, CP.Info exception) {}
+  record Except(short start, short end, short handler, CP.info catchType) {}
 
   record Module(
     byte tag,
-    CP.Info name,
+    CP.info name,
     short flags,
-    CP.Info version,
+    CP.info version,
     Iterable<ModuleRequires> requires,
     Iterable<ModuleExports> exports,
     Iterable<ModuleOpens> opens,
-    Iterable<CP.Info> uses,
+    Iterable<CP.info> uses,
     Iterable<ModuleProvides> provides
   ) implements AttributeInfo {}
 
-  record ModuleRequires(CP.Info name, short flags, CP.Info version) {}
-  record ModuleExports(CP.Info name, short flags, Iterable<CP.Info> to) {}
-  record ModuleOpens(CP.Info name, short flags, Iterable<CP.Info> to) {}
-  record ModuleProvides(CP.Info name, Iterable<CP.Info> with) {}
+  record ModuleRequires(CP.info name, short flags, CP.info version) {}
+  record ModuleExports(CP.info name, short flags, Iterable<CP.info> to) {}
+  record ModuleOpens(CP.info name, short flags, Iterable<CP.info> to) {}
+  record ModuleProvides(CP.info name, Iterable<CP.info> with) {}
 
-  record ModulePackages(byte tag, Iterable<CP.Info> packages) implements AttributeInfo {}
-  record ModuleMainClass(byte tag, CP.Info mainClass) implements AttributeInfo {}
+  record ModulePackages(byte tag, Iterable<CP.info> packages) implements AttributeInfo {}
+  record ModuleMainClass(byte tag, CP.info mainClass) implements AttributeInfo {}
 
   record StackMapTable(byte tag, Iterable<StackMapFrame> entries) implements AttributeInfo {}
 
@@ -190,15 +194,15 @@ public interface ClassFile {
   record TypePath(Iterable<Part> parts) {}
   record Part(byte kind, byte index) {}
 
-  record Annotation(CP.Info type, Iterable<ElementValuePair> pairs) {}
-  record ElementValuePair(CP.Info name, ElementValue value) {}
+  record Annotation(CP.info type, Iterable<ElementValuePair> pairs) {}
+  record ElementValuePair(CP.info name, ElementValue value) {}
 
   interface ElementValue {
     byte tag();
 
-    record Const(byte tag, CP.Info value) implements ElementValue {}
-    record EnumConst(byte tag, CP.Info type, CP.Info name) implements ElementValue {}
-    record Class(byte tag, CP.Info info) implements ElementValue {}
+    record Const(byte tag, CP.info value) implements ElementValue {}
+    record EnumConst(byte tag, CP.info type, CP.info name) implements ElementValue {}
+    record Class(byte tag, CP.info info) implements ElementValue {}
     record Annotated(byte tag, Annotation value) implements ElementValue {}
     record Array(byte tag, Iterable<ElementValue> values) implements ElementValue {}
   }

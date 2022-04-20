@@ -9,6 +9,8 @@ import java.util.function.Consumer;
 import bc.ClassFile;
 import static bc.ClassFile.*;
 import static bc.JVMS.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Decode { // for bc.builder
 
@@ -49,25 +51,30 @@ public class Decode { // for bc.builder
   }
 
   void class_() {
-    f("  Class(%s, %s)\n", s(cf.type()), s(cf.superType()) );
+    f("  Class(%s, %s)\n", cp(cf.type()), cp(cf.superType()) );
     f("    flags(0x%04x)\n", cf.flags() );
   }
 
   Object[] V;
+  CP.info[] W;
 
   void values() {
-    V = new Object[cf.constantCount()];
-    for (var i:cf.constantPool()) {
-      V[i.index()] = switch(i.tag()) {
-
-        case CONSTANT_Utf8 -> "\"" + cf.chars(((CP.Utf8)i).offset(),((CP.Utf8)i).length()) + "\"";
-
-        case CONSTANT_Integer -> cf.int32(((CP.Integer)i).offset());
-        case CONSTANT_Float -> Float.floatToIntBits(cf.int32(((CP.Float)i).offset()));
-        case CONSTANT_Long -> cf.int64(((CP.Long)i).offset());
-        case CONSTANT_Double -> Double.longBitsToDouble(cf.int64(((CP.Double)i).offset()));
-        default -> null;
-      };
+    var n = cf.constantCount();
+    V = new Object[n];
+    W = new CP.info[n];
+    for (var w:cf.constants()) {
+      n = w.index();
+      W[n] = w;
+      if (w instanceof CP.value v) {
+        V[n] = switch(v.tag()) {
+          case CONSTANT_Utf8 -> cf.chars(v.offset(),((CP.Utf8)v).length());
+          case CONSTANT_Integer -> cf.int32(v.offset());
+          case CONSTANT_Float -> Float.floatToIntBits(cf.int32(v.offset()));
+          case CONSTANT_Long -> cf.int64(v.offset());
+          case CONSTANT_Double -> Double.longBitsToDouble(cf.int64(v.offset()));
+          default -> null;
+        };
+      }
     }
   }
 
@@ -77,7 +84,7 @@ public class Decode { // for bc.builder
       f("# %d interfaces\n", n);
     } else {
       f("  interfaces( #%d\n", n);
-      g(cf.interfaces(), i -> f("    %s\n", s(i)) );
+      g(cf.interfaces(), i -> f("    %s\n", cp(i)) );
       f("  )\n");
     }
   }
@@ -93,7 +100,7 @@ public class Decode { // for bc.builder
   void fields() {
     f("# %d fields\n", cf.fieldsCount());
     for (var d:cf.fields()) {
-      f("  Field(%s, %s)\n", s(d.name()), s(d.descriptor()));
+      f("  Field(%s, %s)\n", cp(d.name()), cp(d.descriptor()));
       f("    flags(0x%04x)\n", d.flags() );
       q(d.attributes(), this::attribute);
     }
@@ -114,7 +121,7 @@ public class Decode { // for bc.builder
   void methods() {
     f("# %d methods\n", cf.methodsCount());
     for (var d:cf.methods()) {
-      f("  Method(%s, %s)\n", s(d.name()), s(d.descriptor()));
+      f("  Method(%s, %s)\n", cp(d.name()), cp(d.descriptor()));
       f("    flags(0x%04x)\n", d.flags() );
       q(d.attributes(), this::attribute);
     }
@@ -122,9 +129,9 @@ public class Decode { // for bc.builder
 
   /**
    * attribute_info : # 4.7
-   *   u2 attribute_name_index
-   *   u4 attribute_length
-   *   u1 info[attribute_length]
+   u2 attribute_name_index
+   u4 attribute_length
+   u1 w[attribute_length]
    */
   void attributes() {
     f("# %d attributes\n", cf.attributesCount());
@@ -168,7 +175,7 @@ public class Decode { // for bc.builder
     }
   }
 
-  // void ed(ConstantValue a) { d("%s TODO: %s\n", P, a); } # 4.7.2
+  // void ed(ConstantValue a) { d("%cp TODO: %cp\n", P, a); } # 4.7.2
 
   /**
    *  Code_attribute : # 4.7.3
@@ -186,59 +193,97 @@ public class Decode { // for bc.builder
    *    attribute_info attributes[attributes_count]
    */
   void ed(Code c) {
+    lines = new ArrayList<>();
     f("%s Code()\n", P);
     p(+2);
-    f("%s stack(%d)\n", P, c.maxStack());
-    f("%s locals(%d)\n", P, c.maxLocals());
-    instructions(c);
-    exceptions(c);
+    // f("%cp stack(%d)\n", P, c.maxStack());
+    // f("%cp locals(%d)\n", P, c.maxLocals());
     attributes(c);
+    exceptions(c);
+    instructions(c);
+    code();
     p(-2);
   }
 
-  // TODO:
-  // Instruction op = new Instruction(constantPool,localVariable,codeOffset);
+  record item(short offset, byte weight, String text) {}
+
+  List<item> lines;
+  void line(short o, byte w, String t) { lines.add(new item(o,w,t)); }
+
+  static final byte
+    LABEL  = 0,
+    START  = 1,
+    END    = 2,
+    HANDLE = 3,
+    INSTRUCTION = 6;
+
+
+
+  void code() {
+    lines.sort((a,b) -> (
+      a.offset < b.offset ? -1 : a.offset > b.offset ? +1 :
+      a.weight < b.weight ? -1 : a.weight > b.weight ? +1 : 0
+    ));
+    f("%s code()\n", P);
+    q(lines, l -> f("%s %s\n", P, l.text) );
+  }
+
   Instruction op = new Instruction(
-    cp -> "#"+cp, lv -> "$"+lv, jm -> ">"+jm
+    ci -> cp(W[ci]), lv -> "&"+lv, jm -> ">"+jm
   );
 
   void instructions(Code c) {
-    f("%s # instructions\n", P);
-    q(c.codes(), o -> f("%s %s\n", P, op.format(o)) );
+    // f("%s code()\n", P);
+    // q(c.codes(), o -> f("%s %s\n", P, op.format(o)) );
+    for (var o:c.codes()) {
+      line(o.pc(), INSTRUCTION, " "+op.format(o));
+    }
   }
 
   void exceptions(Code c) {
-    f("%s # exceptions\n", P);
-    q(c.exceptions(), e -> f("%s --> %s\n", P, e) );
+    for (var e:c.exceptions()) {
+      var start = e.start();
+      var i = -start;
+      line(start, START, "$start("+i+')');
+      line(e.end(), END, "$end("+i+')');
+      line(e.handler(), HANDLE, "$handle("+i+", "+cp(e.catchType())+')');
+    }
   }
 
   void attributes(Code c) {
     f("%s # attributes\n", P);
-    q(c.attributes(), this::attribute);
+    c.attributes().forEach(this::attribute);
   }
 
   void ed(StackMapTable a) {
-    f("%s TODO: %s\n", P, a);
+    f("%s StackMapTable()\n", P);
     q(a.entries(), e -> f("%s --> %s\n", P, e) );
   }
 
-  // void ed(Exceptions a) { d("%s TODO: %s\n", P, a); } # 4.7.5
+  // void ed(Exceptions a) { d("%cp TODO: %cp\n", P, a); } # 4.7.5
 
+  /**
+    { u2 inner_class_info_index;
+      u2 outer_class_info_index;
+      u2 inner_name_index;
+      u2 inner_class_access_flags;
+    } classes
+  */
   void ed(InnerClasses a) {
-    f("%s TODO: %s\n", P, a);
-    q(a.types(), e -> f("%s --> %s\n", P, e) );
+    f("%s InnerClasses()\n", P);
+    q(a.types(), i -> f("%s c=%s n=%s f=%04x o=%s\n", P, cp(i.info()), cp(i.name()), i.flags(), cp(i.outerClass()) ));
   }
 
-  // void ed(EnclosingMethod a) { d("%s TODO: %s\n", P, a); } # 4.7.7
+  // void ed(EnclosingMethod a) { d("%cp TODO: %cp\n", P, a); } # 4.7.7
 
-  // void ed(Synthetic a) { d("%s TODO: %s\n", P, a); } # 4.7.8
+  // void ed(Synthetic a) { d("%cp TODO: %cp\n", P, a); } # 4.7.8
 
   /**
    *  Signature_attribute : # 4.7.9
    *    u2 signature_index
    */
   void ed(Signature a) {
-    f("%s Signature(%s)\n", P, s(a.signature()));
+    f("%s Signature(%s)\n", P, cp(a.signature()));
   }
 
   /**
@@ -246,10 +291,10 @@ public class Decode { // for bc.builder
    *    u2 sourcefile_index
    */
   void ed(SourceFile a) {
-    f("%s SourceFile(%s)\n", P, s(a.sourcefile()));
+    f("%s SourceFile(%s)\n", P, cp(a.sourcefile()));
   }
 
-  // void ed(SourceDebugExtension a) { d("%s TODO: %s\n", P, a); } # 4.7.11
+  // void ed(SourceDebugExtension a) { d("%cp TODO: %cp\n", P, a); } # 4.7.11
 
   /**
    *  LineNumberTable_attribute : # 4.7.12
@@ -259,8 +304,11 @@ public class Decode { // for bc.builder
    *    } line_number_table[line_number_table_length]
    */
   void ed(LineNumberTable t) {
-    f("%s LineNumberTable()\n", P);
-    q(t.lines(), l -> f("%s %04x  @%d\n", P, l.pc(), l.n()) );
+    // f("%s LineNumberTable()\n", P);
+    // q(t.lines(), l -> f("%s %04x  @%d\n", P, l.pc(), l.n()) );
+    for (var i:t.lines()) {
+      line(i.pc(), LABEL, "$(%d) # %04x".formatted(i.n(),i.pc()) );
+    }
   }
 
   /**
@@ -275,51 +323,102 @@ public class Decode { // for bc.builder
    */
   void ed(LocalVariableTable t) {
     f("%s LocalVariableTable()\n", P);
-    q(t.locals(), l -> f("%s %04x  $%d  %d %s %s\n", P, l.pc(), l.index(), l.len(), s(l.name()), s(l.descriptor()) ) );
+    q(t.locals(), l -> f("%s add(%d, %s, %s) # %04x:%04x\n",
+       P, l.index(), cp(l.name()), cp(l.descriptor()), l.pc(), l.pc()+l.len() )
+    );
   }
 
-  // void ed(LocalVariableTypeTable a) { d("%s TODO: %s\n", P, a); } # 4.7.14
+  // void ed(LocalVariableTypeTable a) { d("%cp TODO: %cp\n", P, a); } # 4.7.14
 
-  // void ed(Deprecated a) { d("%s TODO: %s\n", P, a); } # 4.7.15
+  // void ed(Deprecated a) { d("%cp TODO: %cp\n", P, a); } # 4.7.15
 
   // # 4.7.16
   void ed(RuntimeVisibleAnnotations a) {
     f("%s TODO: %s\n", P, a);
   }
 
-  // void ed(RuntimeInvisibleAnnotations a) { d("%s TODO: %s\n", P, a); } # 4.7.17
+  // void ed(RuntimeInvisibleAnnotations a) { d("%cp TODO: %cp\n", P, a); } # 4.7.17
 
-  // void ed(RuntimeVisibleParameterAnnotations a) { d("%s TODO: %s\n", P, a); } # 4.7.18
+  // void ed(RuntimeVisibleParameterAnnotations a) { d("%cp TODO: %cp\n", P, a); } # 4.7.18
 
-  // void ed(RuntimeInvisibleParameterAnnotations a) { d("%s TODO: %s\n", P, a); } # 4.7.19
+  // void ed(RuntimeInvisibleParameterAnnotations a) { d("%cp TODO: %cp\n", P, a); } # 4.7.19
 
-  // void ed(RuntimeVisibleTypeAnnotations a) { d("%s TODO: %s\n", P, a); } # 4.7.20
+  // void ed(RuntimeVisibleTypeAnnotations a) { d("%cp TODO: %cp\n", P, a); } # 4.7.20
 
-  // void ed(RuntimeInvisibleTypeAnnotations a) { d("%s TODO: %s\n", P, a); } # 4.7.21
+  // void ed(RuntimeInvisibleTypeAnnotations a) { d("%cp TODO: %cp\n", P, a); } # 4.7.21
 
-  // void ed(AnnotationDefault a) { d("%s TODO: %s\n", P, a); } # 4.7.22
+  // void ed(AnnotationDefault a) { d("%cp TODO: %cp\n", P, a); } # 4.7.22
 
-  // void ed(BootstrapMethods a) { d("%s TODO: %s\n", P, a); } # 4.7.23
+  // void ed(BootstrapMethods a) { d("%cp TODO: %cp\n", P, a); } # 4.7.23
 
+  /**
+    { u2 name_index;
+      u2 access_flags;
+    } parameters
+  */
   void ed(MethodParameters a) {
-    f("%s TODO: %s\n", P, a);
-    q(a.parameters(), e -> f("%s --> %s\n", P, e) );
+    f("%s MethodParameters()\n", P);
+    q(a.parameters(), e -> f("%s --> %s\n", P, e) ); // TODO:
   }
 
-  // void ed(Module a) { d("%s TODO: %s\n", P, a); } # 4.7.25
+  // void ed(Module a) { d("%cp TODO: %cp\n", P, a); } # 4.7.25
 
-  // void ed(ModulePackages a) { d("%s TODO: %s\n", P, a); } # 4.7.26
+  // void ed(ModulePackages a) { d("%cp TODO: %cp\n", P, a); } # 4.7.26
 
-  // void ed(ModuleMainClass a) { d("%s TODO: %s\n", P, a); } # 4.7.27
+  // void ed(ModuleMainClass a) { d("%cp TODO: %cp\n", P, a); } # 4.7.27
 
-  // void ed(NestHost a) { d("%s TODO: %s\n", P, a); } # 4.7.28
+  // void ed(NestHost a) { d("%cp TODO: %cp\n", P, a); } # 4.7.28
 
-  // void ed(NestMembers a) { d("%s TODO: %s\n", P, a); } # 4.7.29
+  // void ed(NestMembers a) { d("%cp TODO: %cp\n", P, a); } # 4.7.29
 
-  // void ed(Record a) { d("%s TODO: %s\n", P, a); } # 4.7.30
+  // void ed(Record a) { d("%cp TODO: %cp\n", P, a); } # 4.7.30
 
-  // void ed(PermittedSubclasses a) { d("%s TODO: %s\n", P, a); } # 4.7.31
+  // void ed(PermittedSubclasses a) { d("%cp TODO: %cp\n", P, a); } # 4.7.31
 
+
+  String cp(CP.info i) {
+    return switch (i.tag()) {
+
+      case CONSTANT_Utf8 // 1
+           -> dq( i.index() );
+
+      case CONSTANT_Integer, CONSTANT_Float, CONSTANT_Long, CONSTANT_Double 	// 3, 4, 5, 6
+           -> String.valueOf(V[i.index()]);
+
+      case CONSTANT_Class, CONSTANT_Module, CONSTANT_Package // 7, 19, 20
+           -> dq( ((CP.name)i).name() );
+
+      case CONSTANT_String // 8
+           -> dq( ((CP.String)i).string() );
+
+      case CONSTANT_Fieldref, CONSTANT_Methodref, CONSTANT_InterfaceMethodref // 9, 10, 11
+           -> {
+             var r = (CP.ref) i;
+             var c = (CP.Class) W[r.classRef()];
+             var n = (CP.NameAndType) W[r.namedType()];
+             yield "\"" + V[c.name()] + '.' + V[n.name()] + ':' + V[n.descriptor()] + '"';
+           }
+
+      case CONSTANT_NameAndType // 12
+           -> {
+             var n = (CP.NameAndType) i;
+             yield "\"" + V[n.name()] + ':' + V[n.descriptor()] + '"';
+           }
+
+      case CONSTANT_MethodHandle // 15
+           -> "#"+i.index()+"/"+i.tag(); // TODO:
+
+      case CONSTANT_MethodType // 16
+           -> dq( ((CP.MethodType)i).descriptor() );
+
+      case CONSTANT_Dynamic, CONSTANT_InvokeDynamic // 17, 18
+           -> "#"+i.index()+"/"+i.tag(); // TODO:
+
+      default -> "?"+i.tag()+'='+V[i.index()];
+    };
+  }
+
+  String dq(short i) { return "\"" + V[i] + '"'; }
 
   String P = " ";
 
@@ -328,26 +427,5 @@ public class Decode { // for bc.builder
 
   void f(String format, Object... args) { out.format(format,args); }
   <T> void g(Iterable<T> i, Consumer<T> c) { for (var t:i) c.accept(t); }
-
-  String s(CP.Info i) {
-    return String.valueOf(switch (i.tag()) {
-
-      case CONSTANT_Class -> V[((CP.Class)i).name()];
-      case CONSTANT_Module -> V[((CP.Module)i).name()];
-      case CONSTANT_Package -> V[((CP.Package)i).name()];
-
-      case CONSTANT_MethodType -> V[((CP.MethodType)i).descriptor()];
-
-      case CONSTANT_String -> V[((CP.String)i).string()];
-
-      case CONSTANT_Fieldref, CONSTANT_Methodref, CONSTANT_InterfaceMethodref,
-           CONSTANT_NameAndType, CONSTANT_MethodHandle,      // TODO:
-           CONSTANT_Dynamic, CONSTANT_InvokeDynamic -> null; // multiple values
-
-      default -> V[i.index()];
-    });
-  }
-
-  String s(short i) { return String.valueOf(V[i]); }
 
 }

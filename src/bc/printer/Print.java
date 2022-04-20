@@ -81,10 +81,10 @@ public class Print { // javap
    *    u1 info[]
    */
   void constants() {
-    for (var c:cf.constantPool()) ed(c);
+    for (var c:cf.constants()) ed(c);
   }
 
-  void ed(CP.Info c) {
+  void ed(CP.info c) {
     switch (c.tag()) {
       case CONSTANT_Utf8 -> ed((CP.Utf8)c);
       case CONSTANT_Integer -> ed((CP.Integer)c);
@@ -389,6 +389,7 @@ public class Print { // javap
   void ed(StackMapTable t) {
     f("%s %s\n", P, t);
     for (var f:t.entries()) ed(f);
+    // TODO: print sub-entries, if any
   }
 
   void ed(StackMapFrame f) {
