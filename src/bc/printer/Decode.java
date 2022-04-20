@@ -14,6 +14,8 @@ import java.nio.file.Paths;
 import bc.ClassFile;
 import static bc.ClassFile.*;
 import static bc.JVMS.*;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Decode { // for bc.builder
 
@@ -156,9 +158,10 @@ public class Decode { // for bc.builder
 
   void ed(Code c) { // # 4.7.3
     f("%s Code()\n", P);
-    lines = new ArrayList<>();
     p(+2);
+    locals();
     attributes(c);
+    variables();
     exceptions(c);
     instructions(c);
     code();
@@ -166,14 +169,21 @@ public class Decode { // for bc.builder
     p(-2);
   }
 
+  void locals() {
+    lines = new ArrayList<>();
+    defs = new HashMap<>();
+    undefs = new HashMap<>();
+  }
+
   List<line> lines;
-  record line(short offset, byte weight, String text) {}
-  void line(short o, byte w, String t) { lines.add(new line(o,w,t)); }
+  record line(short offset, byte weight, CharSequence text) {}
+  void line(short o, byte w, CharSequence t) { lines.add(new line(o,w,t)); }
 
   static final byte
-    LABEL = 0,
-    START = 2, END = 3, HANDLE = 4,
-    INSTRUCTION = 6;
+    LABEL = 0,                       // LineNumberTable
+    START = 2, END = 7, HANDLE = 8,  // Code.exception_table
+    VAR = 4, DROP = 5,               // LocalVariableTable, LocalVariableTypeTable
+    INSTRUCTION = 10;                // Code.code
 
   void code() {
     lines.sort((a,b) -> (
@@ -201,6 +211,22 @@ public class Decode { // for bc.builder
       line(start, START, "$start("+i+')');
       line(e.end(), END, "$end("+i+')');
       line(e.handler(), HANDLE, "$handle("+i+", "+cp(e.catchType())+')');
+    }
+  }
+
+  void variables() {
+    for (var e:defs.entrySet()) {
+      var index = e.getKey();
+      var v = e.getValue();
+      var pc = v.pc;
+      line(pc, VAR, "$var(%d, %s, %s, %s) # %04x:%04x"
+        .formatted(index, cp(v.name), cp(v.descriptor), cp(v.signature), pc, pc+v.len) );
+    }
+    for (var e:undefs.entrySet()) {
+      var pc = e.getKey();
+      var v = e.getValue();
+      v.setLength(v.length()-1);
+      line(pc, DROP, "$drop("+v+')');
     }
   }
 
@@ -242,18 +268,57 @@ public class Decode { // for bc.builder
   }
 
   void ed(LocalVariableTable a) { // # 4.7.13
-    f("%s LocalVariableTable()\n", P);
-    q(a.locals(), v -> f("%s add(%d, %s, %s) # %04x:%04x\n",
-       P, v.index(), cp(v.name()), cp(v.descriptor()), v.pc(), v.pc()+v.len() )
-    );
+    for (var v:a.locals()) {
+      var k = v.index();
+      var e = defs.get(k);
+      if (e == null) {
+        e = define(k,v.pc(),v.len(),v.name());
+      } else {
+        assert defined(e,v.pc(),v.len(),v.name());
+      }
+      e.descriptor = v.descriptor();
+    }
   }
 
   void ed(LocalVariableTypeTable a) { // # 4.7.14
-    f("%s LocalVariableTypeTable()\n", P);
-    q(a.types(), v -> f("%s add(%d, %s, %s) # %04x:%04x\n",
-       P, v.index(), cp(v.name()), cp(v.signature()), v.pc(), v.pc()+v.len() )
-    );
-  } 
+    for (var v:a.types()) {
+      var k = v.index();
+      var e = defs.get(k);
+      if (e == null) {
+        e = define(k,v.pc(),v.len(),v.name());
+      } else {
+        assert defined(e,v.pc(),v.len(),v.name());
+      }
+      e.signature = v.signature();
+    }
+  }
+
+  class def { short pc, len; CP.info name, descriptor, signature; }
+  Map<Short,def> defs;
+  Map<Short,StringBuilder> undefs;
+
+  def define(short index, short pc, short len, CP.info name) {
+    var v = new def();
+    v.pc = pc;
+    v.len = len;
+    v.name = name;
+    defs.put(index,v);
+    undefine((short)(pc+len),index);
+    return v;
+  }
+
+  boolean defined(def v, short pc, short len, CP.info name) {
+    return v.pc == pc && v.len == len && v.name == name;
+  }
+
+  void undefine(short offset, short index) {
+    var v = undefs.get(offset);
+    if (v == null) {
+      v = new StringBuilder();
+      undefs.put(offset,v);
+    }
+    v.append(index).append(',');
+  }
 
   // void ed(Deprecated a) { d("%cp TODO: %cp\n", P, a); } # 4.7.15
 
