@@ -614,10 +614,10 @@ class Attribute {
    *    u2 offset
    *
    *  Long_variable_info :
-   *      u1 tag = ITEM_Long // 4
+   *    u1 tag = ITEM_Long // 4
    *
    *  Double_variable_info :
-   *      u1 tag = ITEM_Double // 3
+   *    u1 tag = ITEM_Double // 3
    */
   VerificationType verification_type_info(Span a) {
     var tag = a.u1();

@@ -68,9 +68,36 @@ public interface Bytecode {
     return r;
   }
 
-  static byte[] utf8(CharSequence s) {
-    return null; // TODO:
+  static byte[] encode(CharSequence s) {
+    var n = s.length();
+    var b = new bc.util.ByteBuilder(n);
+    for (var i = 0; i < n; i++) {
+      var c = s.charAt(i);
+      if (c > 1 && c < 0x080) { // 0x01 to 0x7f
+        b.append(c);
+      } else {
+        if (c < 0x0800) { // 0x0080 to 0x07ff
+          b.append(0xc0 | ((c >> 6) & 0x1f));
+          b.append(0x80 | (c & 0x3f));
+        } else {
+          if (c < 0x010000) { // 0x0800 to 0xffff
+            b.append(0xe0 | ((c >> 12) & 0x0f));
+            b.append(0x80 | ((c >> 6) & 0x3f));
+            b.append(0x80 | (c & 0x3f));
+          } else { // 0x00010000+
+            b.append(0xed);
+            b.append(0xa0 | (((c >> 16) - 1) & 0x0f));
+            b.append(0x80 | ((c >> 10) & 0x3f));
+            b.append(0xed);
+            b.append(0xb0 | ((c >> 6) & 0x0f));
+            b.append(0x80 | (c & 0x3f));
+          }
+        }
+      }
+    }
+    return b.toByteArray();
   }
+
 
   static int i32(byte[] b, int p) {
     return ( ((b[p] & 0x0ff) << 24) | ((b[p+1] & 0x0ff) << 16) | ((b[p+2] & 0x0ff) <<  8) | (b[p+3] & 0x0ff) );

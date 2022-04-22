@@ -61,7 +61,6 @@ public interface JVMS {
     REF_newInvokeSpecial = 8,
     REF_invokeInterface  = 9;
 
-
   // Table 4.7 Predefined class file attributes
                                                          // section version java-se  -location-
   static final byte

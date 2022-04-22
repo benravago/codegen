@@ -164,7 +164,7 @@ public class Decode { // for bc.builder
     exceptions(c);
     instructions(c);
     code();
-    f("%s ## max stack=%d, locals=%d \n", P, c.maxStack(), c.maxLocals() );
+    f("%s ## max stack=%d, locals=%d\n", P, c.maxStack(), c.maxLocals() );
     p(-2);
   }
 
@@ -463,8 +463,8 @@ public class Decode { // for bc.builder
     @Override void i_p_4d_4d_4d_x() {
       var v = (Integer[])o.args();
       t.format("_%s(%d,", n(), v[0] ); // op, padding
-      for (int i = 1, m = v.length; i < m; i++) {
-        t.format( " 0x%08x,", v[i] ); // default, low, high, jump offsets
+      for (int i = 1, m = v.length; i < m;) {
+        t.format( " 0x%08x,", v[i++] ); // default, low, high, jump offsets
       }
       s.setCharAt(s.length()-1, ')'); // replace trailing ','
     }

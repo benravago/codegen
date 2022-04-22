@@ -392,12 +392,11 @@ public class Print { // like jdk/bin/javap
   void ed(StackMapTable t) {
     f("%s %s\n", P, t);
     for (var f:t.entries()) ed(f);
-    // TODO: print sub-entries, if any
   }
 
   void ed(StackMapFrame f) {
     f("%s  %s\n", P, f);
-    // TODO: print stack_map_frame
+    // TODO: print frame details
   }
 
   /**
