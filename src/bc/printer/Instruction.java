@@ -208,7 +208,7 @@ abstract class Instruction {
       case OP_instanceof      -> i_2c           (); // c1  (2)  cp.index
       case OP_monitorenter    -> i_             (); // c2
       case OP_monitorexit     -> i_             (); // c3
-      case OP_wide            -> i_1w_2c_x      (); // c4  (1,2 | 1,2,2)  opcode, cp.index | iinc, cp.index, count
+      case OP_wide            -> i_1w_2v_x      (); // c4  (1,2 | 1,2,2)  opcode, lv.index | iinc, lv.index, count
       case OP_multianewarray  -> i_2c_1d        (); // c5  (2,1)  cp.index, dimensions
       case OP_ifnull          -> i_2j           (); // c6  (2)  branch
       case OP_ifnonnull       -> i_2j           (); // c7  (2)  branch
@@ -237,7 +237,7 @@ abstract class Instruction {
   abstract void i_p_4d_4d_4d_x (); //  (0-3,4,4,4,...) padding, default, low, high, jump offsets
   abstract void i_p_4d_4d_x    (); //  (0-3,4,4,...)  padding, default, npairs, match/offset pairs
 
-  abstract void i_1w_2c_x      (); //  (1,2 | 1,2,2)  opcode, cp.index | iinc, cp.index, count
+  abstract void i_1w_2v_x      (); //  (1,2 | 1,2,2)  opcode, cp.index | iinc, cp.index, count
 
   void t(String format, Object... args) { t.format(format,args); }
 

@@ -174,7 +174,7 @@ class Disasm {
              yield (w == OP_iinc)
                ? new Object[]{ w, a.u2(), a.u2() }
                : new Object[]{ w, a.u2() };
-           } // c4 ( 1,2,2 | 1,2 ) 'iinc', cp.index, count | opcode, cp.index
+           } // c4 ( 1,2,2 | 1,2 ) 'iinc', lv.index, count | opcode, lv.index
 
       case OP_multianewarray
            -> new Object[]{ a.u2(), a.u1() }; // c5 (2,1) cp.index, dimensions

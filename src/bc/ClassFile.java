@@ -207,4 +207,13 @@ public interface ClassFile {
     record Array(byte tag, Iterable<ElementValue> values) implements ElementValue {}
   }
 
+  static ClassFile parse(byte[] b) {
+    try {
+      return (ClassFile)
+        Class.forName("bc.parser.Bytecode").getConstructor(b.getClass()).newInstance((Object)b);
+    } catch (Exception e) {
+      throw new UnsupportedOperationException(e);
+    }
+  }
+
 }

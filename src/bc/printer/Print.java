@@ -58,7 +58,7 @@ public class Print { // like jdk/bin/javap
    *    attribute_info attributes[attributes_count]
    */
   public void print(byte[] b) {
-    cf = bc.Bytecode.parse(b);
+    cf = parse(b);
 
     f("+ magic %08x\n", cf.magic());
     f("+ minor_version %04x\n", cf.minor());
@@ -587,7 +587,12 @@ public class Print { // like jdk/bin/javap
 
   void ed(Annotation a) {
     f("%s  %s\n", P, a);
-    // TODO: print annotation
+    for (var p:a.pairs()) ed(p);
+  }
+
+  void ed(ElementValuePair p) {
+    f("%s  == %s\n", P, p);
+    // TODO: print element_value
   }
 
   void ed(ParameterAnnotation a) {
@@ -767,12 +772,12 @@ public class Print { // like jdk/bin/javap
       }
     }
 
-    @Override void i_1w_2c_x() {
+    @Override void i_1w_2v_x() {
       var i = u1(0);
       if (i == OP_iinc) {
-        t("%04x  %s  %s, %s, %d", o.pc(), n(), "iinc", cp(u2(1)), u2(2) );
+        t("%04x  %s  %s, %s, %d", o.pc(), n(), "iinc", lv(u2(1)), u2(2) );
       } else {
-        t("%04x  %s  %s, %s", o.pc(), n(), wide_op(i), cp(u2(1)) );
+        t("%04x  %s  %s, %s", o.pc(), n(), wide_op(i), lv(u2(1)) );
       }
     }
 

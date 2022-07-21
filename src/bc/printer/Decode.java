@@ -39,8 +39,17 @@ public class Decode { // for bc.builder
   PrintStream out;
   ClassFile cf;
 
+  void f(String format, Object... args) { out.format(format,args); }
+  <E> void f(Iterable<E> i, Consumer<E> c) { for (var e:i) c.accept(e); }
+  <E> void g(Iterable<E> i, Consumer<E> c) { p(+2); for (var e:i) c.accept(e); p(-2); }
+
+  String dq(short i) { return "\"" + V[i] + '"'; }
+
+  String P = " ";
+  void p(int n) { P = "                     ".substring(0,P.length()+n); }
+
   public void decode(byte[] b) {
-    cf = bc.Bytecode.parse(b);
+    cf = parse(b);
     init();       // magic, minor_version, major_version
     values();     // constant_pool_count, constants[constant_pool_count-1]
     class_();     // access_flags, this_class, super_class
@@ -56,8 +65,8 @@ public class Decode { // for bc.builder
   }
 
   void class_() {
-    f("  Class(%s, %s)\n", cp(cf.type()), cp(cf.superType()) );
-    f("    flags(0x%04x)\n", cf.flags() );
+    f("Class(%s, %s)\n", cp(cf.type()), cp(cf.superType()) );
+    f("  flags(0x%04x)\n", cf.flags() );
   }
 
   Object[] V;
@@ -88,8 +97,13 @@ public class Decode { // for bc.builder
     if (n < 1) {
       f("# %d interfaces\n", n);
     } else {
-      f("  interfaces() #%d\n", n);
-      g(cf.interfaces(), i -> f("    add(%s)\n", cp(i)) );
+      f("  interfaces");
+      var sep = '(';
+      for (var i:cf.interfaces()) {
+        f("%c%s", sep, cp(i));
+        sep = ',';
+      }
+      f(")\n");
     }
   }
 
@@ -98,7 +112,7 @@ public class Decode { // for bc.builder
     for (var d:cf.fields()) {
       f("  Field(%s, %s)\n", cp(d.name()), cp(d.descriptor()));
       f("    flags(0x%04x)\n", d.flags() );
-      q(d.attributes(), this::attribute);
+      g(d.attributes(), this::attribute);
     }
   }
 
@@ -107,13 +121,13 @@ public class Decode { // for bc.builder
     for (var d:cf.methods()) {
       f("  Method(%s, %s)\n", cp(d.name()), cp(d.descriptor()));
       f("    flags(0x%04x)\n", d.flags() );
-      q(d.attributes(), this::attribute);
+      g(d.attributes(), this::attribute);
     }
   }
 
   void attributes() { // # 4.7
     f("# %d attributes\n", cf.attributesCount());
-    g(cf.attributes(), this::attribute);
+    f(cf.attributes(), this::attribute);
   }
 
   void attribute(AttributeInfo a) {
@@ -190,7 +204,7 @@ public class Decode { // for bc.builder
       a.weight < b.weight ? -1 : a.weight > b.weight ? +1 : 0
     ));
     f("%s code()\n", P);
-    q(lines, l -> f("%s %s\n", P, l.text) );
+    g(lines, l -> f("%s %s\n", P, l.text) );
   }
 
   Operation op = new Operation(this::constantPool, this::localVariable, this::codeOffset);
@@ -233,14 +247,14 @@ public class Decode { // for bc.builder
 
   void ed(StackMapTable a) { // # 4.7.4
     f("%s # stack map table\n", P);
-    q(a.entries(), e -> f("%s # %s\n", P, e) );
+    g(a.entries(), e -> f("%s # %s\n", P, e) );
   }
 
   // void ed(Exceptions a) { d("%s TODO: %s\n", P, a); } # 4.7.5
 
   void ed(InnerClasses a) { // # 4.7.6
     f("%s InnerClasses()\n", P);
-    q(a.types(), i -> f("%s add(%s, 0x%04x) // %s %s\n", P, cp(i.info()), i.flags(), cp(i.outerClass()), cp(i.name()) ));
+    g(a.types(), i -> f("%s add(%s, 0x%04x) // %s %s\n", P, cp(i.info()), i.flags(), cp(i.outerClass()), cp(i.name()) ));
   }
 
   void ed(EnclosingMethod a) { // # 4.7.7
@@ -334,7 +348,9 @@ public class Decode { // for bc.builder
   // void ed(Deprecated a) { d("%s TODO: %s\n", P, a); } # 4.7.15
 
   void ed(RuntimeVisibleAnnotations a) { // # 4.7.16
-    f("%s TODO: %s\n", P, a);
+    f("%s RuntimeVisibleAnnotations()\n", P, a);
+    g(a.annotations(), e -> f("%s add(%s)%s\n", P, cp(e.type()), "" ));
+    // TODO: format ElementValuePairs
   }
 
   // void ed(RuntimeInvisibleAnnotations a) { d("%s TODO: %s\n", P, a); } # 4.7.17
@@ -353,7 +369,7 @@ public class Decode { // for bc.builder
 
   void ed(MethodParameters a) { // # 4.7.24
     f("%s MethodParameters()\n", P);
-    q(a.parameters(), e -> f("%s add(%s, 0x%04x)\n", P, cp(e.name()), e.flags() ));
+    g(a.parameters(), e -> f("%s add(%s, 0x%04x)\n", P, cp(e.name()), e.flags() ));
   }
 
   // void ed(Module a) { d("%s TODO: %s\n", P, a); } # 4.7.25
@@ -368,22 +384,13 @@ public class Decode { // for bc.builder
 
   void ed(NestMembers a) { // # 4.7.29
     f("%s NestMembers()\n", P);
-    q(a.members(), m -> f("%s add(%s)\n", P, cp(m))  );
+    g(a.members(), m -> f("%s add(%s)\n", P, cp(m))  );
   }
 
   // void ed(Record a) { d("%s TODO: %s\n", P, a); } # 4.7.30
 
   // void ed(PermittedSubclasses a) { d("%s TODO: %s\n", P, a); } # 4.7.31
 
-  String P = " ";
-
-  void p(int n) { P = "                     ".substring(0,P.length()+n); }
-  <T> void q(Iterable<T> i, Consumer<T> c) { p(+2); for (var t:i) c.accept(t); p(-2); }
-
-  void f(String format, Object... args) { out.format(format,args); }
-  <T> void g(Iterable<T> i, Consumer<T> c) { for (var t:i) c.accept(t); }
-
-  String dq(short i) { return "\"" + V[i] + '"'; }
 
   String cp(CP.info i) {
     return i == null ? "null" : switch (i.tag()) {
@@ -478,12 +485,12 @@ public class Decode { // for bc.builder
       s.setCharAt(s.length()-1, ')'); // replace trailing ','
     }
 
-    @Override void i_1w_2c_x() {
+    @Override void i_1w_2v_x() {
       var i = u1(0);
       if (i == OP_iinc) {
-        t("_%s(%s, %s, %d)", n(), "iinc", cp(u2(1)), u2(2) );
+        t("_%s(%s, %s, %d)", n(), "iinc", lv(u2(1)), u2(2) );
       } else {
-        t("_%s(%s, %s)", n(), wide_op(i), cp(u2(1)) );
+        t("_%s(%s, %s)", n(), wide_op(i), lv(u2(1)) );
       }
     }
 

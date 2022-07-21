@@ -119,17 +119,17 @@ public interface JVMS {
     OP_dconst_1        =   15, //  15  0f
     OP_bipush          =   16, //  16  10  (1)  byte
     OP_sipush          =   17, //  17  11  (2)  short
-    OP_ldc             =   18, //  18  12  (1)  index
-    OP_ldc_w           =   19, //  19  13  (2)  index
-    OP_ldc2_w          =   20, //  20  14  (2)  index
+    OP_ldc             =   18, //  18  12  (1)  cp.index
+    OP_ldc_w           =   19, //  19  13  (2)  cp.index
+    OP_ldc2_w          =   20, //  20  14  (2)  cp.index
 
     // Loads
 
-    OP_iload           =   21, //  21  15  (1)  index
-    OP_lload           =   22, //  22  16  (1)  index
-    OP_fload           =   23, //  23  17  (1)  index
-    OP_dload           =   24, //  24  18  (1)  index
-    OP_aload           =   25, //  25  19  (1)  index
+    OP_iload           =   21, //  21  15  (1)  lv.index
+    OP_lload           =   22, //  22  16  (1)  lv.index
+    OP_fload           =   23, //  23  17  (1)  lv.index
+    OP_dload           =   24, //  24  18  (1)  lv.index
+    OP_aload           =   25, //  25  19  (1)  lv.index
     OP_iload_0         =   26, //  26  1a
     OP_iload_1         =   27, //  27  1b
     OP_iload_2         =   28, //  28  1c
@@ -161,11 +161,11 @@ public interface JVMS {
 
     // Stores
 
-    OP_istore          =   54, //  54  36  (1)  index
-    OP_lstore          =   55, //  55  37  (1)  index
-    OP_fstore          =   56, //  56  38  (1)  index
-    OP_dstore          =   57, //  57  39  (1)  index
-    OP_astore          =   58, //  58  3a  (1)  index
+    OP_istore          =   54, //  54  36  (1)  lv.index
+    OP_lstore          =   55, //  55  37  (1)  lv.index
+    OP_fstore          =   56, //  56  38  (1)  lv.index
+    OP_dstore          =   57, //  57  39  (1)  lv.index
+    OP_astore          =   58, //  58  3a  (1)  lv.index
     OP_istore_0        =   59, //  59  3b
     OP_istore_1        =   60, //  60  3c
     OP_istore_2        =   61, //  61  3d
@@ -245,7 +245,7 @@ public interface JVMS {
     OP_lor             = -127, // 129  81
     OP_ixor            = -126, // 130  82
     OP_lxor            = -125, // 131  83
-    OP_iinc            = -124, // 132  84  (1,1)  index, const
+    OP_iinc            = -124, // 132  84  (1,1)  lv.index, const
 
     // Conversions
 
@@ -291,7 +291,7 @@ public interface JVMS {
 
     OP_goto            = -89 , // 167  a7  (2)  branch
     OP_jsr             = -88 , // 168  a8  (2)  branch
-    OP_ret             = -87 , // 169  a9  (1)  index
+    OP_ret             = -87 , // 169  a9  (1)  lv.index
     OP_tableswitch     = -86 , // 170  aa  (0-3,4,4,4,...)  padding, default, low, high, jump offsets
     OP_lookupswitch    = -85 , // 171  ab  (0-3,4,4,...)  padding, default, npairs, match/offset pairs
     OP_ireturn         = -84 , // 172  ac
@@ -303,29 +303,29 @@ public interface JVMS {
 
     // References
 
-    OP_getstatic       = -78 , // 178  b2  (2)  index
-    OP_putstatic       = -77 , // 179  b3  (2)  index
-    OP_getfield        = -76 , // 180  b4  (2)  index
-    OP_putfield        = -75 , // 181  b5  (2)  index
-    OP_invokevirtual   = -74 , // 182  b6  (2)  index
-    OP_invokespecial   = -73 , // 183  b7  (2)  index
-    OP_invokestatic    = -72 , // 184  b8  (2)  index
-    OP_invokeinterface = -71 , // 185  b9  (2,1,0)  index, count, 0
-    OP_invokedynamic   = -70 , // 186  ba  (2,0,0)  index, 0, 0
-    OP_new             = -69 , // 187  bb  (2)  index
+    OP_getstatic       = -78 , // 178  b2  (2)  cp.index
+    OP_putstatic       = -77 , // 179  b3  (2)  cp.index
+    OP_getfield        = -76 , // 180  b4  (2)  cp.index
+    OP_putfield        = -75 , // 181  b5  (2)  cp.index
+    OP_invokevirtual   = -74 , // 182  b6  (2)  cp.index
+    OP_invokespecial   = -73 , // 183  b7  (2)  cp.index
+    OP_invokestatic    = -72 , // 184  b8  (2)  cp.index
+    OP_invokeinterface = -71 , // 185  b9  (2,1,0)  cp.index, count, 0
+    OP_invokedynamic   = -70 , // 186  ba  (2,0,0)  cp.index, 0, 0
+    OP_new             = -69 , // 187  bb  (2)  cp.index
     OP_newarray        = -68 , // 188  bc  (1)  atype
-    OP_anewarray       = -67 , // 189  bd  (2)  index
+    OP_anewarray       = -67 , // 189  bd  (2)  cp.index
     OP_arraylength     = -66 , // 190  be
     OP_athrow          = -65 , // 191  bf
-    OP_checkcast       = -64 , // 192  c0  (2)  index
-    OP_instanceof      = -63 , // 193  c1  (2)  index
+    OP_checkcast       = -64 , // 192  c0  (2)  cp.index
+    OP_instanceof      = -63 , // 193  c1  (2)  cp.index
     OP_monitorenter    = -62 , // 194  c2
     OP_monitorexit     = -61 , // 195  c3
 
     // Extended
 
-    OP_wide            = -60 , // 196  c4  (1,2 | 1,2,2)  opcode, index | iinc, index, count
-    OP_multianewarray  = -59 , // 197  c5  (2,1)  index, dimensions
+    OP_wide            = -60 , // 196  c4  (1,2 | 1,2,2)  opcode, lv.index | iinc, lv.index, count
+    OP_multianewarray  = -59 , // 197  c5  (2,1)  cp.index, dimensions
     OP_ifnull          = -58 , // 198  c6  (2)  branch
     OP_ifnonnull       = -57 , // 199  c7  (2)  branch
     OP_goto_w          = -56 , // 200  c8  (4)  branch
@@ -336,5 +336,17 @@ public interface JVMS {
     OP_breakpoint      = -54 , // 202  ca
     OP_impdep1         = -2  , // 254  fe
     OP_impdep2         = -1  ; // 255  ff
+
+  // Table 6.5.newarray-A. Array type codes
+
+  final static byte
+    T_BOOLEAN = 4,
+    T_CHAR    = 5,
+    T_FLOAT   = 6,
+    T_DOUBLE  = 7,
+    T_BYTE    = 8,
+    T_SHORT   = 9,
+    T_INT     = 10,
+    T_LONG    = 11;
 
 }

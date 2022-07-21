@@ -159,9 +159,16 @@ public final class Bytecode implements bc.ClassFile {
 
   // decode parts of Bytecode buffer
 
-  @Override public CharSequence chars(int off, int len) { return bc.Bytecode.utf8(b,off,len); }
-  @Override public int int32(int off) { return bc.Bytecode.i32(b,off); }
-  @Override public long int64(int off) { return bc.Bytecode.i64(b,off); }
+  @Override public CharSequence chars(int off, int len) {
+    return bc.util.UTF.decode(b,off,len);
+  }
+  @Override public int int32(int p) {
+    return ( ((b[p] & 0x0ff) << 24) | ((b[p+1] & 0x0ff) << 16) | ((b[p+2] & 0x0ff) <<  8) | (b[p+3] & 0x0ff) );
+  }
+  @Override public long int64(int p) {
+    return ( ((b[p  ] & 0x0ffL) << 56) | ((b[p+1] & 0x0ffL) << 48) | ((b[p+2] & 0x0ffL) << 40) | ((b[p+3] & 0x0ffL) << 32)
+           | ((b[p+4] & 0x0ffL) << 24) | ((b[p+5] & 0x0ffL) << 16) | ((b[p+6] & 0x0ffL) <<  8) | ( b[p+7] & 0x0ffL) );
+  }
 
   // access Bytecode buffer by range
 

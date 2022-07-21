@@ -6,9 +6,9 @@ public class Bytecode implements CompilationUnit {
 
   final short major_version, minor_version;
 
-  public Bytecode(float version) {
+  public Bytecode(double version) {
     assert version > 1.0;
-    var s = Float.toString(version);
+    var s = Double.toString(version);
     var p = s.indexOf('.');
     major_version = Short.valueOf(s.substring(0,p));
     minor_version = Short.valueOf(s.substring(p+1));
@@ -22,15 +22,15 @@ public class Bytecode implements CompilationUnit {
   class ClassInfo implements CompilationUnit.ClassInfo {
     @Override public byte[] bytes() { return null; }
     @Override public ClassInfo flags(short... flags) { return this; }
-    @Override public ClassInfo interfaces(Object... type) { return this; }
-    @Override public FieldInfo Field(Object... type) { return null; }
-    @Override public MethodInfo Method(Object... type) { return null; }
+    @Override public ClassInfo interfaces(String... type) { return this; }
+    @Override public FieldInfo Field(String name, String descriptor) { return null; }
+    @Override public MethodInfo Method(String name, String descriptor) { return null; }
     @Override public RecordInfo Record() { return null; }
     @Override public ClassInfo InnerClasses() { return this; }
     @Override public ClassInfo EnclosingMethod() { return this; }
     @Override public ClassInfo Synthetic() { return this; }
-    @Override public ClassInfo Signature() { return this; }
-    @Override public ClassInfo SourceFile() { return this; }
+    @Override public ClassInfo Signature(String signature) { return this; }
+    @Override public ClassInfo SourceFile(String sourcefile) { return this; }
     @Override public ClassInfo SourceDebugExtension() { return this; }
     @Override public ClassInfo Deprecated() { return this; }
     @Override public ClassInfo RuntimeVisibleAnnotations() { return this; }
@@ -63,9 +63,9 @@ public class Bytecode implements CompilationUnit {
     @Override public CodeInfo Code() { return null; }
     @Override public MethodInfo Exceptions() { return this; }
     @Override public MethodInfo Synthetic() { return this; }
-    @Override public MethodInfo Signature() { return this; }
+    @Override public MethodInfo Signature(String signature) { return this; }
     @Override public MethodInfo Deprecated() { return this; }
-    @Override public MethodInfo RuntimeVisibleAnnotations() { return this; }
+    @Override public MethodInfo RuntimeVisibleAnnotations(String... annotation) { return null; }
     @Override public MethodInfo RuntimeInvisibleAnnotations() { return this; }
     @Override public MethodInfo RuntimeVisibleParameterAnnotations() { return this; }
     @Override public MethodInfo RuntimeInvisibleParameterAnnotations() { return this; }
@@ -81,8 +81,8 @@ public class Bytecode implements CompilationUnit {
     @Override public Code code() { return null; }
 
     @Override public CodeInfo StackMapTable() { return this; }
-    @Override public CodeInfo LineNumberTable() { return this; }
-    @Override public CodeInfo LocalVariableTable() { return this; }
+    @Override public CodeInfo LineNumberTable(int... tag) { return this; }
+    @Override public CodeInfo LocalVariableTable(int... tag) { return this; }
     @Override public CodeInfo LocalVariableTypeTable() { return this; }
     @Override public CodeInfo RuntimeVisibleTypeAnnotations() { return this; }
     @Override public CodeInfo RuntimeInvisibleTypeAnnotations() { return this; }
