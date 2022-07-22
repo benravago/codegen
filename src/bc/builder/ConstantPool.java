@@ -124,10 +124,18 @@ class ConstantPool {
   // CONSTANT_Package_info { u1 tag(20); u2 name_index; }
   short Package(String s) { return cp(CONSTANT_Package, Utf8(s)); }
 
+  // TODO:
+
+  short Loadable(Object...c) { return -1; }
+  short FieldRef(Object...c) { return -1; }
+  short MethodRef(Object...c) { return -1; }
+  short TypeRef(Object...c) { return -1; }
+
+
   private static int[] insert(int[] src, int used, int index, int item) {
     var n = src.length;
     var dest = used < n ? src : new int[n + (n/2)];
-    if (index > 0 && src != dest) System.arraycopy(src,0,dest,0,index);
+    if (src != dest) System.arraycopy(src,0,dest,0,index);
     if (index < n) System.arraycopy(src,index,dest,index+1,n-index);
     dest[index] = item;
     return dest;
