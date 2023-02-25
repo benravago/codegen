@@ -9,7 +9,7 @@ abstract class Operation extends Instruction implements Code {
 
   byte[] buffer = new byte[256];
   int position = 0;
-  
+
   void ensure(int length) {
     if (buffer.length <= position + length) {
       buffer = Arrays.copyOf(buffer, (int)((position+length) * 1.5) );
@@ -137,6 +137,9 @@ abstract class Operation extends Instruction implements Code {
     return this;
   }
 
+  static int padding(int p) { return (4-(p&3))%4; } // or ((p+3)&-4)-p
+  void pad(int n) { while (n-- > 0) buffer[position++] = 0; }
+
   void u1(byte b) {
     buffer[position++] = b;
   }
@@ -147,25 +150,22 @@ abstract class Operation extends Instruction implements Code {
     buffer[position++] = (byte)(i>>>24); buffer[position++] = (byte)(i>>>16);
     buffer[position++] = (byte)(i>>>8); buffer[position++] = (byte)(i);
   }
-  void pad(int n) {
-    while (n-- > 0) buffer[position++] = 0;
-  }
-  
+
   @Override
   Code i_p_4d_4l_4h_x(byte o, int d, int l, int h, int...a) {
     assert a.length > 0 : "no jump offsets";
-    var p = 4-((position+1)&3);
+    var p = padding(position+1);
     ensure(1+p+4+4+4+(4*a.length)); // 1,0-3,4,4,4,...  op, padding, default, low, high, jump offsets
     u1(o); pad(p); u4(d); u4(l); u4(h);
     for (var x:a) u4(x);
-    return this;  
+    return this;
   }
 
   @Override
   Code i_p_4d_4n_x(byte o, int d, int n, int...a) {
     assert a.length > 0 : "no match/offset pairs";
     assert n * 2 == a.length : "wrong pair count";
-    var p = 4-((position+1)&3);
+    var p = padding(position+1);
     ensure(1+p+4+4+(4*a.length)); // 1,0-3,4,4,...  op, padding, default, npairs, match/offset pairs
     u1(o); pad(p); u4(d); u4(n);
     for (var x:a) u4(x);
@@ -174,20 +174,24 @@ abstract class Operation extends Instruction implements Code {
 
   @Override
   Code i_1w_2v_d(byte o, byte w, short v, short...d) {
-    return switch (w) {
-      case OP_iinc -> {
+    return switch(w) {
+      case OP_iinc ->
+      {
         assert d.length == 1 : "invalid count";
         ensure(1+1+2+2); // 1,1,2,2  op, iinc, lv.index, count
         u1(o); u1(w); u2(v); u2(d[0]);
         yield this;
       }
-      case OP_iload, OP_fload, OP_aload, OP_lload, OP_dload, OP_istore, OP_fstore, OP_astore, OP_lstore, OP_dstore, OP_ret -> {
+      case OP_iload, OP_fload, OP_lload, OP_dload, OP_aload,
+           OP_istore, OP_fstore, OP_lstore, OP_dstore, OP_astore,
+           OP_ret ->
+      {
         assert d.length == 0 : "invalid parameter";
         ensure(1+1+2); // 1,1,2  op, wide, lv.index
         u1(o); u1(w); u2(v);
         yield this;
       }
-      default -> { throw new AssertionError("invalid instruction"); }
+      default -> throw new AssertionError("invalid instruction");
     };
   }
 

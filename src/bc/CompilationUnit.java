@@ -294,11 +294,11 @@ public interface CompilationUnit {
     Code  impdep2                            (); // ff
 
     Code  $ (String tag);
-    
+
     Code  $try (String tag);
     Code  $end (String tag);
     Code  $catch (String tag, Constable... exception);
-         
+
     Code  $var (Constable def);
   }
 

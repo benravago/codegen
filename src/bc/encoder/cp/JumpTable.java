@@ -5,13 +5,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class JumpTable {
-  
+
   // key   = jump label
   // value = [0] -> label offset
   //         [1..n] -> label reference; if 0x80000000 31 bit else 16 bit
 
   Map<String,int[]> table = new HashMap<>();
-  
+
   public void set(String key, int offset) {
     var ref = table.get(key);
     if (ref == null) {
@@ -19,13 +19,13 @@ public class JumpTable {
     } else {
       if (ref[0] == 0) {
         ref[0] = offset;
-      } else {  
+      } else {
         throw new IllegalArgumentException("label '"+key+"' is already defined");
-      }  
+      }
     }
-    table.put(key, new int[] {offset});  
+    table.put(key, new int[] {offset});
   }
-  
+
   public int add(String key, int reference) {
     var ref = table.get(key);
     if (ref == null) {
@@ -37,11 +37,11 @@ public class JumpTable {
     table.put(key,ref);
     return ref[0];
   }
-  
+
   public int wide(String key, int reference) {
     return add(key, reference | 0x8000_0000);
   }
-  
+
   public void resolve(byte[] b) {
     for (var ref:table.values()) {
       var j = ref[0];
@@ -56,5 +56,5 @@ public class JumpTable {
       }
     }
   }
-  
+
 }

@@ -15,19 +15,19 @@ class ClassInfo implements CompilationUnit.ClassInfo {
 
   short access_flags;
   short this_class, super_class;
-  
+
   // interfaces_count
   short[] interfaces;
-  
+
   // fields_count, fields[]
-  
+
   // methods_count, methods[]
-  
+
   // attributes_count, attributes[]
-  
+
   ClassInfo(Object... type) {
     this_class = CONSTANT.Class_info(arg(type,0));
-    super_class = CONSTANT.Class_info(arg(type,1,Object.class));   
+    super_class = CONSTANT.Class_info(arg(type,1,Object.class));
     /*
     Method("<init>")
      .flags(PUBLIC)
@@ -81,10 +81,10 @@ class ClassInfo implements CompilationUnit.ClassInfo {
   } // FieldInfo
 
   class MethodInfo implements CompilationUnit.MethodInfo {
-    
+
     @Override public MethodInfo flags(ACC... flags) { return this; }
     @Override public CodeInfo Code() { return null; }
-    
+
     @Override public MethodInfo Exceptions() { return this; }
     @Override public MethodInfo Synthetic() { return this; }
     @Override public MethodInfo Signature(String signature) { return this; }
@@ -102,7 +102,7 @@ class ClassInfo implements CompilationUnit.ClassInfo {
   class CodeInfo implements CompilationUnit.CodeInfo {
 
     @Override public CodeInfo alloc(short max_stack, short max_locals) { return this; }
-    
+
     @Override public CompilationUnit.Code code() { return null; }
     // TODO:  public Encode code() { return new Encode(...); }
 
@@ -128,5 +128,5 @@ class ClassInfo implements CompilationUnit.ClassInfo {
       return Class(classDesc(o).descriptorString());
     }
   }
-  
+
 }

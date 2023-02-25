@@ -213,27 +213,27 @@ abstract class Instruction {
 
 
   abstract Code i_             (byte o);                               //  -
-                                                                      
+
   abstract Code i_1b           (byte o, byte b);                       //  (1)  byte
   abstract Code i_2s           (byte o, short s);                      //  (2)  short
-                                                                      
+
   abstract Code i_1c           (byte o, byte c);                       //  (1)  cp.index
   abstract Code i_2c           (byte o, short c);                      //  (2)  cp.index
   abstract Code i_2c_1d        (byte o, short c, byte d);              //  (2,1)  cp.index, const
-                                                                      
+
   abstract Code i_1v           (byte o, byte v);                       //  (1)  lv.index
   abstract Code i_1v_1d        (byte o, byte v, byte d);               //  (1,1)  lv.index, const
-                                                                      
+
   abstract Code i_1t           (byte o, byte t);                       //  (1)  atype
-                                                                      
+
   abstract Code i_2j           (byte o, short j);                      //  (2)  branch
   abstract Code i_4j           (byte o, int j);                        //  (4)  branch
-                                                                      
+
   abstract Code i_2c_1d_0      (byte o, short c, byte d);              //  (2,1,0)  cp.index, count, 0
   abstract Code i_2c_0_0       (byte o, short c);                      //  (2,0,0)  cp.index, 0, 0
 
   abstract Code i_p_4d_4l_4h_x (byte o, int d, int l, int h, int...j); //  (0-3,4,4,4,...)  padding, default, low, high, jump offsets
-  abstract Code i_p_4d_4n_x    (byte o, int d, int n, int...mo);       //  (0-3,4,4,...)  padding, default, npairs, match/offset pairs   
+  abstract Code i_p_4d_4n_x    (byte o, int d, int n, int...mo);       //  (0-3,4,4,...)  padding, default, npairs, match/offset pairs
 
   abstract Code i_1w_2v_d      (byte o, byte w, short v, short...n);   //  (1,2 | 1,2,2)  opcode, lv.index | iinc, lv.index, count
 

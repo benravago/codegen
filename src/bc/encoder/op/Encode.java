@@ -322,7 +322,7 @@ public abstract class Encode extends Operation {
     // TODO Auto-generated method stub
     return null;
   }
-  
+
   @Override
   public Code $catch(String tag, Constable...exception) {
     // TODO Auto-generated method stub

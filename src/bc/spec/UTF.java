@@ -67,7 +67,7 @@ public interface UTF {
   }
 
   static byte[] encode(CharSequence s) { return encode(s,0); }
-  
+
   static byte[] encode(CharSequence s, int prefix) {
     var len = s.length();
     var r = new Object() {

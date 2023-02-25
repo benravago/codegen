@@ -13,11 +13,11 @@ public interface Descriptors {
       default -> ClassDesc.of(o.getClass().getName());
     };
   }
-  
+
   static Constable methodDesc(Object...o) {
     return null;
   }
-  
+
   static Constable fieldDesc(Object...o) {
     return null;
   }

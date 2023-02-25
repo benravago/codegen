@@ -6,10 +6,10 @@ class Pool {
 
   byte[] buffer = new byte[256];
   int position = 0;
-  
+
   int[] limit = new int[16];
   int index = 0;
-   
+
   int put(byte[] record) {
     var length = record.length;
     A: // see if record is already in buffer
@@ -32,7 +32,7 @@ class Pool {
     // D: store into index
     return put(position);
   }
-  
+
   int put(int offset) {
     if (index + 1 >= limit.length) {
       limit = Arrays.copyOf(limit, (int)(limit.length * 1.5));
@@ -40,13 +40,13 @@ class Pool {
     limit[++index] = offset;
     return index;
   }
-  
+
   int put() { return put(position); }
 
   byte[] copyOf() { return Arrays.copyOfRange(buffer,0,position); }
   int copyTo(byte[] dest, int destPos) { System.arraycopy(buffer,0,dest,destPos,position); return position; }
 
-  int length() { return position; } 
+  int length() { return position; }
   int count() { return index; }
 
 }
