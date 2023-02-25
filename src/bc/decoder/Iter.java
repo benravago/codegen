@@ -1,11 +1,11 @@
-package bc.parser;
+package bc.decoder;
 
 import java.util.Iterator;
 import java.util.function.Function;
 import java.util.function.IntFunction;
 
 import bc.ClassFile.Iteration;
-import bc.parser.Bytecode.Span;
+import bc.decoder.Bytecode.Span;
 
 class Iter {
 

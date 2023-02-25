@@ -3,7 +3,7 @@ package bc.printer;
 import java.util.Formatter;
 
 import bc.ClassFile.Opcode;
-import static bc.JVMS.*;
+import static bc.spec.JVMS.*;
 
 abstract class Instruction {
 
@@ -254,7 +254,7 @@ abstract class Instruction {
   static {
     name = new String[256];
     try {
-      for (var f:bc.JVMS.class.getFields()) {
+      for (var f:bc.spec.JVMS.class.getFields()) {
         var n = f.getName();
         if (n.startsWith("OP_")) {
           var b = (Byte) f.get(null);

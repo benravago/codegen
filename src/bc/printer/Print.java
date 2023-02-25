@@ -12,7 +12,7 @@ import bc.ClassFile.Module;
 import bc.ClassFile.Record;
 import bc.ClassFile.Deprecated;
 import static bc.ClassFile.*;
-import static bc.JVMS.*;
+import static bc.spec.JVMS.*;
 
 public class Print { // like jdk/bin/javap
 
@@ -58,7 +58,7 @@ public class Print { // like jdk/bin/javap
    *    attribute_info attributes[attributes_count]
    */
   public void print(byte[] b) {
-    cf = parse(b);
+    cf = from(b);
 
     f("+ magic %08x\n", cf.magic());
     f("+ minor_version %04x\n", cf.minor());

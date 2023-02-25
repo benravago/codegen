@@ -15,7 +15,7 @@ import java.nio.file.Paths;
 
 import bc.ClassFile;
 import static bc.ClassFile.*;
-import static bc.JVMS.*;
+import static bc.spec.JVMS.*;
 
 public class Decode { // for bc.builder
 
@@ -49,7 +49,7 @@ public class Decode { // for bc.builder
   void p(int n) { P = "                     ".substring(0,P.length()+n); }
 
   public void decode(byte[] b) {
-    cf = parse(b);
+    cf = from(b);
     init();       // magic, minor_version, major_version
     values();     // constant_pool_count, constants[constant_pool_count-1]
     class_();     // access_flags, this_class, super_class

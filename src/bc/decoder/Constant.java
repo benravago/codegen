@@ -1,11 +1,11 @@
-package bc.parser;
+package bc.decoder;
 
-import bc.parser.Bytecode.Span;
 import static bc.ClassFile.CP;
-import static bc.JVMS.*;
+import static bc.spec.JVMS.*;
+
+import bc.decoder.Bytecode.Span;
 
 class Constant {
-
 
   /**
    * returns index of 'constant_pool' section

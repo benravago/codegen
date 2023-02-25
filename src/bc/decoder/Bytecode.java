@@ -1,4 +1,4 @@
-package bc.parser;
+package bc.decoder;
 
 public final class Bytecode implements bc.ClassFile {
 
@@ -160,7 +160,7 @@ public final class Bytecode implements bc.ClassFile {
   // decode parts of Bytecode buffer
 
   @Override public CharSequence chars(int off, int len) {
-    return bc.util.UTF.decode(b,off,len);
+    return bc.spec.UTF.decode(b,off,len);
   }
   @Override public int int32(int p) {
     return ( ((b[p] & 0x0ff) << 24) | ((b[p+1] & 0x0ff) << 16) | ((b[p+2] & 0x0ff) <<  8) | (b[p+3] & 0x0ff) );

@@ -1,4 +1,4 @@
-package bc;
+package bc.spec;
 
 public interface JVMS {
 
@@ -349,4 +349,28 @@ public interface JVMS {
     T_INT     = 10,
     T_LONG    = 11;
 
+  enum ACC {
+    PUBLIC       (ACC_PUBLIC), 
+    PRIVATE      (ACC_PRIVATE), 
+    PROTECTED    (ACC_PROTECTED), 
+    STATIC       (ACC_STATIC), 
+    FINAL        (ACC_FINAL), 
+    SUPER        (ACC_SUPER), 
+    SYNCHRONIZED (ACC_SYNCHRONIZED), 
+    VOLATILE     (ACC_VOLATILE), 
+    BRIDGE       (ACC_BRIDGE), 
+    TRANSIENT    (ACC_TRANSIENT), 
+    VARARGS      (ACC_VARARGS), 
+    NATIVE       (ACC_NATIVE), 
+    INTERFACE    (ACC_INTERFACE), 
+    ABSTRACT     (ACC_ABSTRACT), 
+    STRICT       (ACC_STRICT), 
+    SYNTHETIC    (ACC_SYNTHETIC), 
+    ANNOTATION   (ACC_ANNOTATION), 
+    ENUM         (ACC_ENUM), 
+    MODULE       (ACC_MODULE);
+  
+    ACC(short b) { bits=b; }
+    public final short bits;
+  }
 }

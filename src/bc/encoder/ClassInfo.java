@@ -1,27 +1,49 @@
-package bc.builder;
+package bc.encoder;
 
 import bc.CompilationUnit;
+import bc.encoder.cp.ConstantPool;
+import bc.encoder.fn.Access;
 
-public class Bytecode implements CompilationUnit {
+import static bc.encoder.fn.Descriptors.*;
+import static bc.encoder.fn.Macros.*;
+import static bc.spec.JVMS.*;
 
-  final short major_version, minor_version;
+class ClassInfo implements CompilationUnit.ClassInfo {
 
-  public Bytecode(double version) {
-    assert version > 1.0;
-    var s = Double.toString(version);
-    var p = s.indexOf('.');
-    major_version = Short.valueOf(s.substring(0,p));
-    minor_version = Short.valueOf(s.substring(p+1));
+  // contstant_pool_count
+  cp_info CONSTANT = new cp_info();
+
+  short access_flags;
+  short this_class, super_class;
+  
+  // interfaces_count
+  short[] interfaces;
+  
+  // fields_count, fields[]
+  
+  // methods_count, methods[]
+  
+  // attributes_count, attributes[]
+  
+  ClassInfo(Object... type) {
+    this_class = CONSTANT.Class_info(arg(type,0));
+    super_class = CONSTANT.Class_info(arg(type,1,Object.class));   
+    /*
+    Method("<init>")
+     .flags(PUBLIC)
+     .Code().code()
+       .aload_0()
+       .invokespecial(d(Object.class,"<init>"))
+       .vreturn()
+    */
   }
 
   @Override
-  public ClassInfo Class(Object... type) {
-    return new ClassInfo();
+  public ClassInfo flags(ACC... flags) {
+    access_flags = Access.forClass(flags);
+    return this;
   }
 
-  class ClassInfo implements CompilationUnit.ClassInfo {
-    @Override public byte[] bytes() { return null; }
-    @Override public ClassInfo flags(short... flags) { return this; }
     @Override public ClassInfo interfaces(String... type) { return this; }
     @Override public FieldInfo Field(String name, String descriptor) { return null; }
     @Override public MethodInfo Method(String name, String descriptor) { return null; }
@@ -44,10 +66,10 @@ public class Bytecode implements CompilationUnit {
     @Override public ClassInfo NestHost() { return this; }
     @Override public ClassInfo NestMembers() { return this; }
     @Override public ClassInfo PermittedSubclasses() { return this; }
-  } // ClassInfo
+   // ClassInfo
 
   class FieldInfo implements CompilationUnit.FieldInfo {
-    @Override public FieldInfo flags(short... flags) { return this; }
+    @Override public FieldInfo flags(ACC... flags) { return this; }
     @Override public FieldInfo ConstantValue() { return this; }
     @Override public FieldInfo Synthetic() { return this; }
     @Override public FieldInfo Signature() { return this; }
@@ -59,8 +81,10 @@ public class Bytecode implements CompilationUnit {
   } // FieldInfo
 
   class MethodInfo implements CompilationUnit.MethodInfo {
-    @Override public MethodInfo flags(short... flags) { return this; }
+    
+    @Override public MethodInfo flags(ACC... flags) { return this; }
     @Override public CodeInfo Code() { return null; }
+    
     @Override public MethodInfo Exceptions() { return this; }
     @Override public MethodInfo Synthetic() { return this; }
     @Override public MethodInfo Signature(String signature) { return this; }
@@ -78,7 +102,9 @@ public class Bytecode implements CompilationUnit {
   class CodeInfo implements CompilationUnit.CodeInfo {
 
     @Override public CodeInfo alloc(short max_stack, short max_locals) { return this; }
-    @Override public Code code() { return null; }
+    
+    @Override public CompilationUnit.Code code() { return null; }
+    // TODO:  public Encode code() { return new Encode(...); }
 
     @Override public CodeInfo StackMapTable() { return this; }
     @Override public CodeInfo LineNumberTable(int... tag) { return this; }
@@ -96,4 +122,11 @@ public class Bytecode implements CompilationUnit {
     @Override public RecordInfo RuntimeInvisibleTypeAnnotations() { return this; }
   } // RecordInfo
 
+
+  class cp_info extends ConstantPool {
+    short Class_info(Object o) {
+      return Class(classDesc(o).descriptorString());
+    }
+  }
+  
 }

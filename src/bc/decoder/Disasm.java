@@ -1,8 +1,9 @@
-package bc.parser;
+package bc.decoder;
 
-import bc.parser.Bytecode.Span;
 import bc.ClassFile.Opcode;
-import static bc.JVMS.*;
+import bc.decoder.Bytecode.Span;
+
+import static bc.spec.JVMS.*;
 
 class Disasm {
 

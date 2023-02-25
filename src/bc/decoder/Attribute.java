@@ -1,11 +1,11 @@
-package bc.parser;
+package bc.decoder;
 
-import bc.parser.Bytecode.Span;
+import bc.decoder.Bytecode.Span;
 import bc.ClassFile.Deprecated;
 import bc.ClassFile.Record;
 import bc.ClassFile.Module;
 import static bc.ClassFile.*;
-import static bc.JVMS.*;
+import static bc.spec.JVMS.*;
 
 class Attribute {
 

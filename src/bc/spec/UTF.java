@@ -1,4 +1,4 @@
-package bc.util;
+package bc.spec;
 
 import java.util.Arrays;
 
@@ -66,11 +66,13 @@ public interface UTF {
     return new String(r.buf,0,r.count);
   }
 
-  static byte[] encode(CharSequence s) {
+  static byte[] encode(CharSequence s) { return encode(s,0); }
+  
+  static byte[] encode(CharSequence s, int prefix) {
     var len = s.length();
     var r = new Object() {
-      byte[] buf = new byte[len];
-      int count = 0;
+      byte[] buf = new byte[prefix+len];
+      int count = prefix;
 
       void add(int i) {
         var n = buf.length;
