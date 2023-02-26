@@ -174,25 +174,16 @@ abstract class Operation extends Instruction implements Code {
 
   @Override
   Code i_1w_2v_d(byte o, byte w, short v, short...d) {
-    return switch(w) {
-      case OP_iinc ->
-      {
-        assert d.length == 1 : "invalid count";
-        ensure(1+1+2+2); // 1,1,2,2  op, iinc, lv.index, count
-        u1(o); u1(w); u2(v); u2(d[0]);
-        yield this;
-      }
-      case OP_iload, OP_fload, OP_lload, OP_dload, OP_aload,
-           OP_istore, OP_fstore, OP_lstore, OP_dstore, OP_astore,
-           OP_ret ->
-      {
-        assert d.length == 0 : "invalid parameter";
-        ensure(1+1+2); // 1,1,2  op, wide, lv.index
-        u1(o); u1(w); u2(v);
-        yield this;
-      }
-      default -> throw new AssertionError("invalid instruction");
-    };
+    if (w == OP_iinc) {
+      assert d.length == 1 : "invalid count";
+      ensure(1+1+2+2); // 1,1,2,2  op, iinc, lv.index, count
+      u1(o); u1(w); u2(v); u2(d[0]);
+    } else { // optimistic
+      assert d.length == 0 : "invalid parameter";
+      ensure(1+1+2); // 1,1,2  op, wide, lv.index
+      u1(o); u1(w); u2(v);
+    }
+    return this;
   }
 
 }

@@ -27,6 +27,32 @@ public interface JVMS {
     ACC_ENUM           = 0x4000 ,  // c f
     ACC_MODULE = (short) 0x8000 ;  // c
 
+  enum ACC {
+    PUBLIC       (ACC_PUBLIC),
+    PRIVATE      (ACC_PRIVATE),
+    PROTECTED    (ACC_PROTECTED),
+    STATIC       (ACC_STATIC),
+    FINAL        (ACC_FINAL),
+    SUPER        (ACC_SUPER),
+    SYNCHRONIZED (ACC_SYNCHRONIZED),
+    VOLATILE     (ACC_VOLATILE),
+    BRIDGE       (ACC_BRIDGE),
+    TRANSIENT    (ACC_TRANSIENT),
+    VARARGS      (ACC_VARARGS),
+    NATIVE       (ACC_NATIVE),
+    INTERFACE    (ACC_INTERFACE),
+    ABSTRACT     (ACC_ABSTRACT),
+    STRICT       (ACC_STRICT),
+    SYNTHETIC    (ACC_SYNTHETIC),
+    ANNOTATION   (ACC_ANNOTATION),
+    ENUM         (ACC_ENUM),
+    MODULE       (ACC_MODULE);
+
+    ACC(short b) { bits=b; }
+    public final short bits;
+  }
+
+
   // 4.4. The Constant Pool           // Table 4.4 - Constant pool tags
                                       //  section version java-se loadable
   static final byte
@@ -48,6 +74,7 @@ public interface JVMS {
     CONSTANT_Module             = 19, //   4.4.11   53.0   9
     CONSTANT_Package            = 20; //   4.4.12   53.0   9
 
+
   // 4.4.8. The CONSTANT_MethodHandle_info Structure
 
   final static byte // for Reference.kind
@@ -60,6 +87,7 @@ public interface JVMS {
     REF_invokeSpecial    = 7,
     REF_newInvokeSpecial = 8,
     REF_invokeInterface  = 9;
+
 
   // Table 4.7 Predefined class file attributes
                                                          // section version java-se  -location-
@@ -94,6 +122,7 @@ public interface JVMS {
     ATTRIBUTE_NestMembers                          = 29, //  4.7.29   55.0   11      ClassFile
     ATTRIBUTE_Record                               = 30, //  4.7.30   60.0   16      ClassFile
     ATTRIBUTE_PermittedSubclasses                  = 31; //  4.7.31   61.0   17      ClassFile
+
 
   // Chapter 7. Opcode Mnemonics by Opcode
 
@@ -337,6 +366,25 @@ public interface JVMS {
     OP_impdep1         = -2  , // 254  fe
     OP_impdep2         = -1  ; // 255  ff
 
+  enum WIDE {
+    IINC   (OP_iinc),
+    ILOAD  (OP_iload),
+    FLOAD  (OP_fload),
+    LLOAD  (OP_lload),
+    DLOAD  (OP_dload),
+    ALOAD  (OP_aload),
+    ISTORE (OP_istore),
+    FSTORE (OP_fstore),
+    LSTORE (OP_lstore),
+    DSTORE (OP_dstore),
+    ASTORE (OP_astore),
+    RET    (OP_ret);
+
+    WIDE(byte b) { bits=b; }
+    public final byte bits;
+  }
+
+
   // Table 6.5.newarray-A. Array type codes
 
   final static byte
@@ -349,28 +397,18 @@ public interface JVMS {
     T_INT     = 10,
     T_LONG    = 11;
 
-  enum ACC {
-    PUBLIC       (ACC_PUBLIC),
-    PRIVATE      (ACC_PRIVATE),
-    PROTECTED    (ACC_PROTECTED),
-    STATIC       (ACC_STATIC),
-    FINAL        (ACC_FINAL),
-    SUPER        (ACC_SUPER),
-    SYNCHRONIZED (ACC_SYNCHRONIZED),
-    VOLATILE     (ACC_VOLATILE),
-    BRIDGE       (ACC_BRIDGE),
-    TRANSIENT    (ACC_TRANSIENT),
-    VARARGS      (ACC_VARARGS),
-    NATIVE       (ACC_NATIVE),
-    INTERFACE    (ACC_INTERFACE),
-    ABSTRACT     (ACC_ABSTRACT),
-    STRICT       (ACC_STRICT),
-    SYNTHETIC    (ACC_SYNTHETIC),
-    ANNOTATION   (ACC_ANNOTATION),
-    ENUM         (ACC_ENUM),
-    MODULE       (ACC_MODULE);
+  enum AT {
+    BOOLEAN (T_BOOLEAN),
+    CHAR    (T_CHAR),
+    FLOAT   (T_FLOAT),
+    DOUBLE  (T_DOUBLE),
+    BYTE    (T_BYTE),
+    SHORT   (T_SHORT),
+    INT     (T_INT),
+    LONG    (T_LONG);
 
-    ACC(short b) { bits=b; }
-    public final short bits;
+    AT(byte b) { bits=b; }
+    public final byte bits;
   }
+
 }

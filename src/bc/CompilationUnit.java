@@ -219,7 +219,7 @@ public interface CompilationUnit {
     Code  lor                                (); // 81
     Code  ixor                               (); // 82
     Code  lxor                               (); // 83
-    Code  iinc                  (int v, byte d); // 84  (1,1)  lv.index, const
+    Code  iinc               (String v, byte d); // 84  (1,1)  lv.index, const
     Code  i2l                                (); // 85
     Code  i2f                                (); // 86
     Code  i2d                                (); // 87
@@ -275,7 +275,7 @@ public interface CompilationUnit {
     Code  invokeinterface (Constable c, byte d); // b9  (2,1,0)  cp.index, count, 0
     Code  invokedynamic           (Constable c); // ba  (2,0,0)  cp.index, 0, 0
     Code  new_v                   (Constable c); // bb  (2)  cp.index
-    Code  newarray                     (byte t); // bc  (1)  atype
+    Code  newarray                       (AT t); // bc  (1)  atype
     Code  anewarray               (Constable c); // bd  (2)  cp.index
     Code  arraylength                        (); // be
     Code  athrow                             (); // bf
@@ -283,7 +283,7 @@ public interface CompilationUnit {
     Code  instance_of             (Constable c); // c1  (2)  cp.index
     Code  monitorenter                       (); // c2
     Code  monitorexit                        (); // c3
-    Code  wide      (byte w, String v, int...c); // c4  (1,2 | 1,2,2)  opcode, lv.index | iinc, lv.index, count
+    Code  wide    (WIDE w, String v, short...d); // c4  (1,2 | 1,2,2)  opcode, lv.index | iinc, lv.index, count
     Code  multianewarray  (Constable c, byte d); // c5  (2,1)  cp.index, dimensions
     Code  ifnull                     (String j); // c6  (2)  branch
     Code  ifnonnull                  (String j); // c7  (2)  branch
