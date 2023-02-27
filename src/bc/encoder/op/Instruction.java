@@ -173,7 +173,7 @@ abstract class Instruction {
   public Code if_acmpeq                         (short j) { return i_2j           ( OP_if_acmpeq, j            ); } // a5  (2)  branch
   public Code if_acmpne                         (short j) { return i_2j           ( OP_if_acmpne, j            ); } // a6  (2)  branch
   public Code goto_v                            (short j) { return i_2j           ( OP_goto, j                 ); } // a7  (2)  branch
-  public Code jsr                               (short j) { return i_2j           ( OP_jsr, j                  ); } // a8  (2)  branch
+  public Code jsr_v                             (short j) { return i_2j           ( OP_jsr, j                  ); } // a8  (2)  branch
   public Code ret                                (byte v) { return i_1v           ( OP_ret, v                  ); } // a9  (1)  lv.index
   public Code tableswitch  (int d, int l, int h, int...j) { return i_p_4d_4l_4h_x ( OP_tableswitch, d, l, h, j ); } // aa  (0-3,4,4,4,...) padding, default, low, high, jump offsets
   public Code lookupswitch       (int d, int n, int...mo) { return i_p_4d_4n_x    ( OP_lookupswitch, d, n, mo  ); } // ab  (0-3,4,4,...)  padding, default, npairs, match/offset pairs
@@ -192,7 +192,7 @@ abstract class Instruction {
   public Code invokestatic                      (short c) { return i_2c           ( OP_invokestatic, c         ); } // b8  (2)  cp.index
   public Code invokeinterface           (short c, byte d) { return i_2c_1d_0      ( OP_invokeinterface, c, d   ); } // b9  (2,1,0)  cp.index, count, 0
   public Code invokedynamic                     (short c) { return i_2c_0_0       ( OP_invokedynamic, c        ); } // ba  (2,0,0)  cp.index, 0, 0
-  public Code new_v                             (short c) { return i_2c           ( OP_new, c                  ); } // bb  (2)  cp.index
+  public Code anew                              (short c) { return i_2c           ( OP_new, c                  ); } // bb  (2)  cp.index
   public Code newarray                           (byte t) { return i_1t           ( OP_newarray, t             ); } // bc  (1)  atype
   public Code anewarray                         (short c) { return i_2c           ( OP_anewarray, c            ); } // bd  (2)  cp.index
   public Code arraylength                              () { return i_             ( OP_arraylength             ); } // be

@@ -255,7 +255,7 @@ public interface CompilationUnit {
     Code  if_acmpeq                  (String j); // a5  (2)  branch
     Code  if_acmpne                  (String j); // a6  (2)  branch
     Code  goto_v                     (String j); // a7  (2)  branch
-    Code  jsr                        (String j); // a8  (2)  branch
+    Code  jsr_v                      (String j); // a8  (2)  branch
     Code  ret                        (String v); // a9  (1)  lv.index
     Code  tableswitch              (String...j); // aa  (0-3,4,4,4,...) padding, default, low, high, jump offsets
     Code  lookupswitch             (Object...p); // ab  (0-3,4,4,...)  padding, default, npairs, match/offset pairs
@@ -274,7 +274,7 @@ public interface CompilationUnit {
     Code  invokestatic            (Constable c); // b8  (2)  cp.index
     Code  invokeinterface (Constable c, byte d); // b9  (2,1,0)  cp.index, count, 0
     Code  invokedynamic           (Constable c); // ba  (2,0,0)  cp.index, 0, 0
-    Code  new_v                   (Constable c); // bb  (2)  cp.index
+    Code  anew                    (Constable c); // bb  (2)  cp.index
     Code  newarray                       (AT t); // bc  (1)  atype
     Code  anewarray               (Constable c); // bd  (2)  cp.index
     Code  arraylength                        (); // be
