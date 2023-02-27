@@ -15,7 +15,7 @@ public class ConstantPool extends Pool {
     b[0] = CONSTANT_Utf8;
     var n = b.length - 3;
     b[1] = (byte)(n>>>8); b[2] = (byte)(n);
-    return (short)put(b);
+    return (short)put(b,1);
   }
 
   // CONSTANT_Integer_info {
@@ -37,7 +37,7 @@ public class ConstantPool extends Pool {
   public short t32(byte tag, int v) {
     byte[] b = { tag, 0,0,0,0 };
     b[1] = (byte)(v>>>24); b[2] = (byte)(v>>>16); b[3] = (byte)(v>>>8); b[4] = (byte)(v);
-    return (short)put(b);
+    return (short)put(b,1);
   }
 
   // CONSTANT_Long_info {
@@ -60,11 +60,10 @@ public class ConstantPool extends Pool {
     byte[] b = { tag, 0,0,0,0, 0,0,0,0 };
     b[1] = (byte)(v>>>56); b[2] = (byte)(v>>>48); b[3] = (byte)(v>>>40); b[4] = (byte)(v>>>32);
     b[5] = (byte)(v>>>24); b[6] = (byte)(v>>>16); b[7] = (byte)(v>>> 8); b[8] = (byte)(v);
-    var i = put(b);
-    put(); // jvms 4.4.5 # In retrospect, making 8-byte constants take two constant pool entries was a poor choice.
-    return (short)i;
+    // jvms 4.4.5 # In retrospect, making 8-byte constants take two constant pool entries was a poor choice.
+    return (short)put(b,2);
   }
-
+  
   //  7 CONSTANT_Class_info { u1 tag; u2 name_index; }
   public short Class(String s) { return t16(CONSTANT_Class, Utf8(s)); }
 
@@ -74,7 +73,7 @@ public class ConstantPool extends Pool {
   public short t16(byte tag, short v) {
     byte[] b = { tag, 0,0 };
     b[1] = (byte)(v>>>8); b[2] = (byte)(v);
-    return (short)put(b);
+    return (short)put(b,1);
   }
 
   // CONSTANT_Fieldref_info {
@@ -116,7 +115,7 @@ public class ConstantPool extends Pool {
   public short t1616(byte tag, short x, short y) {
     byte[] b = { tag, 0,0, 0,0 };
     b[1] = (byte)(x>>>8); b[2] = (byte)(x); b[3] = (byte)(y>>>8); b[4] = (byte)(y);
-    return (short)put(b);
+    return (short)put(b,1);
   }
 
   // CONSTANT_MethodHandle_info {
@@ -127,7 +126,7 @@ public class ConstantPool extends Pool {
   public short MethodHandle(byte kind, short index) {
     byte[] b = {CONSTANT_MethodHandle, kind, 0,0 };
     b[2] = (byte)(index>>>8); b[3] = (byte)(index);
-    return (short)put(b);
+    return (short)put(b,1);
   }
 
   // CONSTANT_MethodType_info {
@@ -169,7 +168,7 @@ public class ConstantPool extends Pool {
   //   u2 name_index;
   // }
   public short Package(String s) {
-    return t16(CONSTANT_Package, Utf8(s));
+    return t16(CONSTANT_Package, Utf8(s)); 
   }
 
 }

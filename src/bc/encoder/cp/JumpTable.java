@@ -12,7 +12,7 @@ public class JumpTable {
 
   Map<String,int[]> table = new HashMap<>();
 
-  public void set(String key, int offset) {
+  public int set(String key, int offset) {
     var ref = table.get(key);
     if (ref == null) {
       ref = new int[]{offset};
@@ -23,10 +23,11 @@ public class JumpTable {
         throw new IllegalArgumentException("label '"+key+"' is already defined");
       }
     }
-    table.put(key, new int[] {offset});
+    table.put(key,ref);
+    return ref[0];
   }
 
-  public int add(String key, int reference) {
+  public int mark(String key, int reference) {
     var ref = table.get(key);
     if (ref == null) {
       ref = new int[]{0,reference};
@@ -39,7 +40,7 @@ public class JumpTable {
   }
 
   public int wide(String key, int reference) {
-    return add(key, reference | 0x8000_0000);
+    return mark(key, reference | 0x8000_0000); // set wide bit
   }
 
   public void resolve(byte[] b) {
@@ -47,7 +48,7 @@ public class JumpTable {
       var j = ref[0];
       for (var i = 1; i < ref.length; i++) {
         var r = ref[i];
-        if (r < 0) { // high bit on
+        if (r < 0) { // is wide bit on? - or check for goto_w/jsr_w at b[r-1]
           r &= 0x7fff_ffff;
           b[r] = (byte)(j>>>24); b[r+1] = (byte)(j>>>16); b[r+2] = (byte)(j>>>8); b[r+3] = (byte)j;
         } else {

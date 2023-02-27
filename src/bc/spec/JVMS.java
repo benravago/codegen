@@ -368,18 +368,18 @@ public interface JVMS {
 
   enum WIDE {
     IINC   (OP_iinc),
-    ILOAD  (OP_iload),
-    FLOAD  (OP_fload),
-    LLOAD  (OP_lload),
-    DLOAD  (OP_dload),
+    ILOAD  (OP_iload), 
+    FLOAD  (OP_fload), 
+    LLOAD  (OP_lload), 
+    DLOAD  (OP_dload), 
     ALOAD  (OP_aload),
-    ISTORE (OP_istore),
-    FSTORE (OP_fstore),
-    LSTORE (OP_lstore),
-    DSTORE (OP_dstore),
+    ISTORE (OP_istore), 
+    FSTORE (OP_fstore), 
+    LSTORE (OP_lstore), 
+    DSTORE (OP_dstore), 
     ASTORE (OP_astore),
     RET    (OP_ret);
-
+ 
     WIDE(byte b) { bits=b; }
     public final byte bits;
   }
