@@ -70,12 +70,12 @@ public abstract class Encode extends Operation {
   @Override 
   public Code tableswitch(String d, Object...p) { // default, base, offset ...
     assert p.length > 2 && p[0] instanceof Integer : "bad offset parameters";
-    var dflt = to(d); // default jump offset
+    var dflt = to_w(d); // default jump offset
     var low = ((Integer)p[1]).intValue(); // index base
     var high = low + p.length - 2; // last index
     var offsets = new int[p.length-1];
-    for (var i = 0; i < offsets.length; i++) {
-      offsets[i] = to((String)p[i+1]);
+    for (var i = 0; i < offsets.length;) {
+      offsets[i] = to_w((String)p[++i]);
     }
     tableswitch(dflt,low,high,offsets);
     return this;
@@ -85,11 +85,11 @@ public abstract class Encode extends Operation {
   @Override
   public Code lookupswitch(String d, Object...p) { // default, match/offset ...
     assert p.length > 0 && p.length % 2 == 0 : "bad match/offset parameters";
-    var dflt = to(d); // default jump offset
+    var dflt = to_w(d); // default jump offset
     var pairs = new int[p.length];
     for (var i = 0; i < p.length;) {
       pairs[i] = ((Integer)p[i++]).intValue(); // match value
-      pairs[i] = to((String)p[i++]); // jump offset
+      pairs[i] = to_w((String)p[i++]); // jump offset
     }
     sort(pairs);
     lookupswitch(dflt, pairs.length >>> 1, pairs);
