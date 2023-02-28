@@ -257,8 +257,8 @@ public interface CompilationUnit {
     Code  goto_v                     (String j); // a7  (2)  branch
     Code  jsr_v                      (String j); // a8  (2)  branch
     Code  ret                        (String v); // a9  (1)  lv.index
-    Code  tableswitch              (String...j); // aa  (0-3,4,4,4,...) padding, default, low, high, jump offsets
-    Code  lookupswitch             (Object...p); // ab  (0-3,4,4,...)  padding, default, npairs, match/offset pairs
+    Code  tableswitch    (String d, Object...p); // aa  (0-3,4,4,4,...) padding, default, low, high, jump offsets
+    Code  lookupswitch   (String d, Object...p); // ab  (0-3,4,4,...)  padding, default, npairs, match/offset pairs
     Code  ireturn                            (); // ac
     Code  lreturn                            (); // ad
     Code  freturn                            (); // ae
@@ -294,12 +294,11 @@ public interface CompilationUnit {
     Code  impdep2                            (); // ff
 
     Code  $ (String tag);
+    Code  $var (String tag, int slots);
 
     Code  $try (String tag);
     Code  $end (String tag);
     Code  $catch (String tag, Constable... exception);
-
-    Code  $var (Constable def);
   }
 
   interface RecordInfo {

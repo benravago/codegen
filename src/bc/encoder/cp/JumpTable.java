@@ -1,42 +1,35 @@
 package bc.encoder.cp;
 
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 
-public class JumpTable {
+public class JumpTable extends Table {
 
-  // key   = jump label
-  // value = [0] -> label offset
-  //         [1..n] -> label reference; if 0x80000000 31 bit else 16 bit
-
-  Map<String,int[]> table = new HashMap<>();
+  // value = int[]{ offset, reference ... }
 
   public int set(String key, int offset) {
-    var ref = table.get(key);
-    if (ref == null) {
-      ref = new int[]{offset};
+    var i = set(key);
+    var v = values[i];
+    if (v == null) {
+      v = new int[]{offset};
     } else {
-      if (ref[0] == 0) {
-        ref[0] = offset;
-      } else {
-        throw new IllegalArgumentException("label '"+key+"' is already defined");
-      }
+      assert v[0] == 0 : "label '"+key+"' is already defined";
+      v[0] = offset;   
     }
-    table.put(key,ref);
-    return ref[0];
+    values[i] = v;
+    return i;
   }
 
   public int mark(String key, int reference) {
-    var ref = table.get(key);
-    if (ref == null) {
-      ref = new int[]{0,reference};
+    var i = set(key);
+    var v = values[i];
+    if (v == null) {
+      v = new int[]{0,reference};
     } else {
-      ref = Arrays.copyOf(ref,ref.length+1);
-      ref[ref.length-1] = reference;
+      v = Arrays.copyOf(v,v.length+1);
+      v[v.length-1] = reference;
     }
-    table.put(key,ref);
-    return ref[0];
+    values[i] = v;
+    return i;
   }
 
   public int wide(String key, int reference) {
@@ -44,7 +37,8 @@ public class JumpTable {
   }
 
   public void resolve(byte[] b) {
-    for (var ref:table.values()) {
+    for (var v = 0; v < limit; v++) {
+      var ref = values[v];
       var j = ref[0];
       for (var i = 1; i < ref.length; i++) {
         var r = ref[i];
