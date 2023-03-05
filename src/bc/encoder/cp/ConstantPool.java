@@ -34,7 +34,7 @@ public class ConstantPool extends Pool {
     return t32(CONSTANT_Float, Float.floatToIntBits(value));
   }
 
-  public short t32(byte tag, int v) {
+  short t32(byte tag, int v) {
     byte[] b = { tag, 0,0,0,0 };
     b[1] = (byte)(v>>>24); b[2] = (byte)(v>>>16); b[3] = (byte)(v>>>8); b[4] = (byte)(v);
     return (short)put(b,1);
@@ -56,7 +56,7 @@ public class ConstantPool extends Pool {
     return t64(CONSTANT_Double, Double.doubleToLongBits(value));
   }
 
-  public short t64(byte tag, long v) {
+  short t64(byte tag, long v) {
     byte[] b = { tag, 0,0,0,0, 0,0,0,0 };
     b[1] = (byte)(v>>>56); b[2] = (byte)(v>>>48); b[3] = (byte)(v>>>40); b[4] = (byte)(v>>>32);
     b[5] = (byte)(v>>>24); b[6] = (byte)(v>>>16); b[7] = (byte)(v>>> 8); b[8] = (byte)(v);
@@ -70,7 +70,7 @@ public class ConstantPool extends Pool {
   //  8 CONSTANT_String_info { u1 tag; u2 string_index; }
   public short String(String s) { return t16(CONSTANT_String, Utf8(s)); }
 
-  public short t16(byte tag, short v) {
+  short t16(byte tag, short v) {
     byte[] b = { tag, 0,0 };
     b[1] = (byte)(v>>>8); b[2] = (byte)(v);
     return (short)put(b,1);
@@ -112,7 +112,7 @@ public class ConstantPool extends Pool {
     return t1616(CONSTANT_NameAndType, Utf8(name), Utf8(descriptor));
   }
 
-  public short t1616(byte tag, short x, short y) {
+  short t1616(byte tag, short x, short y) {
     byte[] b = { tag, 0,0, 0,0 };
     b[1] = (byte)(x>>>8); b[2] = (byte)(x); b[3] = (byte)(y>>>8); b[4] = (byte)(y);
     return (short)put(b,1);

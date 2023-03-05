@@ -154,6 +154,7 @@ abstract class Operation extends Instruction implements Code {
   @Override
   Code i_p_4d_4l_4h_x(byte o, int d, int l, int h, int...a) {
     assert a.length > 0 : "no jump offsets";
+    assert h - l == a.length : "invalid range";
     var p = padding(position+1);
     ensure(1+p+4+4+4+(4*a.length)); // 1,0-3,4,4,4,...  op, padding, default, low, high, jump offsets
     u1(o); pad(p); u4(d); u4(l); u4(h);

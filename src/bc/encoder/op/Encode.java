@@ -6,14 +6,17 @@ import bc.CompilationUnit.Code;
 import bc.encoder.cp.LocalVariables;
 import bc.encoder.cp.JumpTable;
 import bc.encoder.cp.ExceptionTable;
+import static bc.encoder.fn.Descriptors.*;
 import static bc.spec.JVMS.*;
 
 public abstract class Encode extends Operation {
 
   LocalVariables local = new LocalVariables();
 
-  private final byte lv(String v) { return local.slot(v); }
-  private final short lv_w(String v) { return local.wide(v); }
+  private final byte lv(String v) { return b(local.v32(v)); }
+  private final byte lv2(String v) { return b(local.v64(v)); }
+
+  private static byte b(int i) { assert i < 256 : "too many variables"; return (byte)(i-1); }
 
   JumpTable jumps = new JumpTable();
 
@@ -27,23 +30,23 @@ public abstract class Encode extends Operation {
   
   abstract short cp(Constable c);
   
-  //  Code  ldc(Constable c) { ldc((byte)cp(c)); return this; }
-  //  Code  ldc_w(Constable c) { ldc_w(cp(c)); return this; }
-  //  Code  ldc2_w(Constable c) { ldc2_w(cp(c)); return this; }
+  @Override public Code ldc(Constable c) { ldc((byte)cp(loadable(c))); return this; }
+  @Override public Code ldc_w(Constable c) { ldc_w(cp(loadable(c))); return this; }
+  @Override public Code ldc2_w(Constable c) { ldc2_w(cp(loadable2(c))); return this; }
+  
+  @Override public Code iload(String i) { iload(lv(i)); return this; }
+  @Override public Code lload(String l) { lload(lv2(l)); return this; }
+  @Override public Code fload(String f) { fload(lv(f)); return this; }
+  @Override public Code dload(String d) { dload(lv2(d)); return this; }
+  @Override public Code aload(String a) { aload(lv(a)); return this; }
 
-  @Override public Code iload(String v) { iload(lv(v)); return this; }
-  @Override public Code lload(String v) { lload(lv(v)); return this; }
-  @Override public Code fload(String v) { fload(lv(v)); return this; }
-  @Override public Code dload(String v) { dload(lv(v)); return this; }
-  @Override public Code aload(String v) { aload(lv(v)); return this; }
+  @Override public Code istore(String i) { istore(lv(i)); return this; }
+  @Override public Code lstore(String l) { lstore(lv2(l)); return this; }
+  @Override public Code fstore(String f) { fstore(lv(f)); return this; }
+  @Override public Code dstore(String d) { dstore(lv2(d)); return this; }
+  @Override public Code astore(String a) { astore(lv(a)); return this; }
 
-  @Override public Code istore(String v) { istore(lv(v)); return this; }
-  @Override public Code lstore(String v) { lstore(lv(v)); return this; }
-  @Override public Code fstore(String v) { fstore(lv(v)); return this; }
-  @Override public Code dstore(String v) { dstore(lv(v)); return this; }
-  @Override public Code astore(String v) { astore(lv(v)); return this; }
-
-  @Override public Code iinc(String v, byte d) { iinc(lv(v),d); return this; }
+  @Override public Code iinc(String i, byte d) { iinc(lv(i),d); return this; }
 
   @Override public Code ifeq(String j) { ifeq(to(j)); return this; }
   @Override public Code ifne(String j) { ifne(to(j)); return this; }
@@ -65,13 +68,12 @@ public abstract class Encode extends Operation {
   @Override public Code jsr_v(String j) { jsr_v(to(j)); return this; }
   
   @Override public Code ret(String v) { ret(lv(v)); return this; }
-
   
   @Override 
   public Code tableswitch(String d, Object...p) { // default, base, offset ...
     assert p.length > 2 && p[0] instanceof Integer : "bad offset parameters";
     var dflt = to_w(d); // default jump offset
-    var low = ((Integer)p[1]).intValue(); // index base
+    var low = ((Integer)p[0]).intValue(); // index base
     var high = low + p.length - 2; // last index
     var offsets = new int[p.length-1];
     for (var i = 0; i < offsets.length;) {
@@ -80,7 +82,6 @@ public abstract class Encode extends Operation {
     tableswitch(dflt,low,high,offsets);
     return this;
   }
-  // https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-6.html#jvms-6.5.tableswitch
   
   @Override
   public Code lookupswitch(String d, Object...p) { // default, match/offset ...
@@ -95,8 +96,7 @@ public abstract class Encode extends Operation {
     lookupswitch(dflt, pairs.length >>> 1, pairs);
     return this;
   }
-  // https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-6.html#jvms-6.5.lookupswitch
-  
+
   static void sort(int[] mo) { // a simple pair-aware bubble sort
     boolean swap;
     do {
@@ -111,30 +111,43 @@ public abstract class Encode extends Operation {
     } while (swap);
   }
 
-  //  Code  getstatic(Constable c) { getstatic(cp(c)); return this; }
-  //  Code  putstatic(Constable c) { putstatic(cp(c)); return this; }
+  @Override public Code getstatic(Constable c) { getstatic(cp(field(c))); return this; }
+  @Override public Code putstatic(Constable c) { putstatic(cp(field(c))); return this; }
 
-  //  Code  getfield(Constable c) { getfield(cp(c)); return this; }
-  //  Code  putfield(Constable c) { putfield(cp(c)); return this; }
+  @Override public Code getfield(Constable c) { getfield(cp(field(c))); return this; }
+  @Override public Code putfield(Constable c) { putfield(cp(field(c))); return this; }
 
-  //  Code  invokevirtual(Constable c) { invokevirtual(cp(c)); return this; }
-  //  Code  invokespecial(Constable c) { invokespecial(cp(c)); return this; }
-  //  Code  invokestatic(Constable c) { invokestatic(cp(c)); return this; }
-  //  Code  invokeinterface(Constable c, byte d) { invokeinterface(cp(c),d); return this; }
-  //  Code  invokedynamic(Constable c) { invokedynamic(cp(c)); return this; }
+  @Override public Code invokevirtual(Constable c) { invokevirtual(cp(method(c))); return this; }
+  @Override public Code invokespecial(Constable c) { invokespecial(cp(invocable(c))); return this; }
+  @Override public Code invokestatic(Constable c) { invokestatic(cp(invocable(c))); return this; }
+  @Override public Code invokeinterface(Constable c, byte d) { invokeinterface(cp(interfaceMethod(c)),d); return this; }
+  @Override public Code invokedynamic(Constable c) { invokedynamic(cp(callsite(c))); return this; }
 
-  //  Code  anew(Constable c) { anew(cp(c)); return this; }
+  @Override public Code anew(Constable c) { anew(cp(component(c))); return this; }
 
   @Override public Code newarray(AT t) { newarray(t.bits); return this; }
 
-  //  Code  anewarray(Constable c) { anewarray(cp(c));  return this; }
+  @Override public Code anewarray(Constable c) { anewarray(cp(type(c)));  return this; }
 
-  //  Code  checkcast(Constable c) { checkcast(cp(c));  return this; }
-  //  Code  instance_of(Constable c) { instance_of(cp(c));  return this; }
+  @Override public Code checkcast(Constable c) { checkcast(cp(type(c)));  return this; }
+  @Override public Code instance_of(Constable c) { instance_of(cp(type(c)));  return this; }
 
-  @Override public Code wide(WIDE w, String v, short... c) { wide(w.bits,lv_w(v),c); return this; }
+  @Override
+  public Code wide(WIDE w, String v, short... c) {
+    var o = w.bits;
+    var i = switch(o) {
+      case OP_ret,
+           OP_iload, OP_fload, OP_aload, 
+           OP_istore, OP_fstore, OP_astore -> local.v32(v);
+      case OP_lload, OP_dload,
+           OP_lstore, OP_dstore -> local.v64(v);
+      default -> { assert false : "invalid WIDE op: "+w; yield 0; } 
+    };
+    wide(w.bits,(short)i,c);
+    return this;
+  }
 
-  //  Code  multianewarray(Constable c, byte d) { multianewarray(cp(c),d); return this; }
+  @Override public Code multianewarray(Constable c, byte d) { multianewarray(cp(type(c)),d); return this; }
 
   @Override public Code ifnull(String j) { ifnull(to(j)); return this; }
   @Override public Code ifnonnull(String j) { ifnonnull(to(j)); return this; }
@@ -166,9 +179,9 @@ public abstract class Encode extends Operation {
   }
   @Override
   public Code $catch(String tag, Constable...exception) {
-    for (var e:exception) faults.handler(tag, position, cp(e));
+    for (var e:exception) faults.handler(tag, position, cp(exception(e)));
     return this;
   }
 
-
 }
+
