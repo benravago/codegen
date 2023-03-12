@@ -8,6 +8,8 @@ import static bc.encoder.fn.Descriptors.*;
 import static bc.encoder.fn.Macros.*;
 import static bc.spec.JVMS.*;
 
+import java.lang.constant.Constable;
+
 class ClassInfo implements CompilationUnit.ClassInfo {
 
   // contstant_pool_count
@@ -125,7 +127,7 @@ class ClassInfo implements CompilationUnit.ClassInfo {
 
   class cp_info extends ConstantPool {
     short Class_info(Object o) {
-      return Class(classDesc(o).descriptorString());
+      return -1; // TODO: Class(classDesc(o).descriptorString());
     }
   }
 

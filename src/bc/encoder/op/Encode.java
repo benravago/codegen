@@ -22,18 +22,18 @@ public abstract class Encode extends Operation {
 
   private final short to(String j) { return (short) jumps.mark(j,position); }
   private final int to_w(String j) { return jumps.wide(j,position); }
-  
+
   ExceptionTable faults = new ExceptionTable();
 
   // TODO: handle ConstantPool in Class
   //       also refine api per Constable kind
-  
+
   abstract short cp(Constable c);
-  
+
   @Override public Code ldc(Constable c) { ldc((byte)cp(loadable(c))); return this; }
   @Override public Code ldc_w(Constable c) { ldc_w(cp(loadable(c))); return this; }
   @Override public Code ldc2_w(Constable c) { ldc2_w(cp(loadable2(c))); return this; }
-  
+
   @Override public Code iload(String i) { iload(lv(i)); return this; }
   @Override public Code lload(String l) { lload(lv2(l)); return this; }
   @Override public Code fload(String f) { fload(lv(f)); return this; }
@@ -66,10 +66,10 @@ public abstract class Encode extends Operation {
 
   @Override public Code goto_v(String j) { goto_v(to(j)); return this; }
   @Override public Code jsr_v(String j) { jsr_v(to(j)); return this; }
-  
+
   @Override public Code ret(String v) { ret(lv(v)); return this; }
-  
-  @Override 
+
+  @Override
   public Code tableswitch(String d, Object...p) { // default, base, offset ...
     assert p.length > 2 && p[0] instanceof Integer : "bad offset parameters";
     var dflt = to_w(d); // default jump offset
@@ -82,7 +82,7 @@ public abstract class Encode extends Operation {
     tableswitch(dflt,low,high,offsets);
     return this;
   }
-  
+
   @Override
   public Code lookupswitch(String d, Object...p) { // default, match/offset ...
     assert p.length > 0 && p.length % 2 == 0 : "bad match/offset parameters";
@@ -111,17 +111,17 @@ public abstract class Encode extends Operation {
     } while (swap);
   }
 
-  @Override public Code getstatic(Constable c) { getstatic(cp(field(c))); return this; }
-  @Override public Code putstatic(Constable c) { putstatic(cp(field(c))); return this; }
+  @Override public Code getstatic(Constable...c) { getstatic(cp(field(c))); return this; }
+  @Override public Code putstatic(Constable...c) { putstatic(cp(field(c))); return this; }
 
-  @Override public Code getfield(Constable c) { getfield(cp(field(c))); return this; }
-  @Override public Code putfield(Constable c) { putfield(cp(field(c))); return this; }
+  @Override public Code getfield(Constable...c) { getfield(cp(field(c))); return this; }
+  @Override public Code putfield(Constable...c) { putfield(cp(field(c))); return this; }
 
-  @Override public Code invokevirtual(Constable c) { invokevirtual(cp(method(c))); return this; }
-  @Override public Code invokespecial(Constable c) { invokespecial(cp(invocable(c))); return this; }
-  @Override public Code invokestatic(Constable c) { invokestatic(cp(invocable(c))); return this; }
-  @Override public Code invokeinterface(Constable c, byte d) { invokeinterface(cp(interfaceMethod(c)),d); return this; }
-  @Override public Code invokedynamic(Constable c) { invokedynamic(cp(callsite(c))); return this; }
+  @Override public Code invokevirtual(Constable...c) { invokevirtual(cp(method(c))); return this; }
+  @Override public Code invokespecial(Constable...c) { invokespecial(cp(invocable(c))); return this; }
+  @Override public Code invokestatic(Constable...c) { invokestatic(cp(invocable(c))); return this; }
+  @Override public Code invokeinterface(Constable...c) { invokeinterface(cp(interfaceMethod(c)),argumentCount(c)); return this; }
+  @Override public Code invokedynamic(Constable...c) { invokedynamic(cp(callsite(c))); return this; }
 
   @Override public Code anew(Constable c) { anew(cp(component(c))); return this; }
 
@@ -137,11 +137,11 @@ public abstract class Encode extends Operation {
     var o = w.bits;
     var i = switch(o) {
       case OP_ret,
-           OP_iload, OP_fload, OP_aload, 
+           OP_iload, OP_fload, OP_aload,
            OP_istore, OP_fstore, OP_astore -> local.v32(v);
       case OP_lload, OP_dload,
            OP_lstore, OP_dstore -> local.v64(v);
-      default -> { assert false : "invalid WIDE op: "+w; yield 0; } 
+      default -> { assert false : "invalid WIDE op: "+w; yield 0; }
     };
     wide(w.bits,(short)i,c);
     return this;
@@ -166,7 +166,7 @@ public abstract class Encode extends Operation {
     local.set(tag,slots);
     return this;
   }
-  
+
   @Override
   public Code $try(String tag) {
     faults.start(tag, position);

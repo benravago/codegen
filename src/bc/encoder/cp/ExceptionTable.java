@@ -43,7 +43,7 @@ public class ExceptionTable extends Table {
          u2 end_pc;     -> $end()
          u2 handler_pc; -> $catch(tag
          u2 catch_type; ->           ,type)
-         
+
        } exception_table[exception_table_length];
  *
 */

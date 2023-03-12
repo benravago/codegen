@@ -22,7 +22,7 @@ public class Table {
         System.arraycopy(k,0,keys,0,i);
         System.arraycopy(v,0,values,0,i);
       }
-    }  
+    }
     if (i < limit) {
       var n = limit-i;
       System.arraycopy(k,i,keys,i+1,n);

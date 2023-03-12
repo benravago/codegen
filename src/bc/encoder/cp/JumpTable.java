@@ -13,7 +13,7 @@ public class JumpTable extends Table {
       v = new int[]{offset};
     } else {
       assert v[0] == 0 : "label '"+key+"' is already defined";
-      v[0] = offset;   
+      v[0] = offset;
     }
     values[i] = v;
     return i;

@@ -4,7 +4,7 @@ public class LocalVariables extends Pool {
 
   final static byte[] THIS = {116,104,105,115};
   /*<init>*/ { put(THIS,1); }
- 
+
   public int v32(String name) {
     var i = put(name.getBytes(),1);
     assert i == last || limit[i] != limit[i+1] : "var '"+name+"' is not 32-bit wide";
