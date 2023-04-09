@@ -24,7 +24,7 @@ public interface ClassFile {
   interface CP {
 
     interface info { byte tag(); short index(); }
-    interface name extends info { short name(); }
+    interface named extends info { short name(); }
     interface value extends info { short offset(); }
     interface ref extends info { short classRef(); short namedType(); }
     interface func extends info { short bootstrapMethod(); short namedType(); }
@@ -38,13 +38,13 @@ public interface ClassFile {
 
     record String(byte tag, short index, short string) implements info {}
 
-    record Class(byte tag, short index, short name) implements name {}
-    record Module(byte tag, short index, short name) implements name {}
-    record Package(byte tag, short index, short name) implements name {}
+    record Class(byte tag, short index, short name) implements named {}
+    record Module(byte tag, short index, short name) implements named {}
+    record Package(byte tag, short index, short name) implements named {}
 
     record MethodType(byte tag, short index, short descriptor) implements info {}
 
-    record NameAndType(byte tag, short index, short name, short descriptor) implements name {}
+    record NameAndType(byte tag, short index, short name, short descriptor) implements named {}
 
     record Field(byte tag, short index, short classRef, short namedType) implements ref {}
     record Method(byte tag, short index, short classRef, short namedType) implements ref {}

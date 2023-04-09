@@ -402,7 +402,7 @@ public class Decode { // for bc.builder
         -> String.valueOf(V[i.index()]);
 
       case CONSTANT_Class, CONSTANT_Module, CONSTANT_Package // 7, 19, 20
-        -> dq( ((CP.name)i).name() );
+        -> dq( ((CP.named)i).name() );
 
       case CONSTANT_String // 8
         -> dq( ((CP.String)i).string() );

@@ -11,8 +11,13 @@ import java.lang.reflect.Method;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
-public interface Descriptors {
+import static bc.spec.JVMS.*;
 
+public interface Descriptors {
+  
+  // Constable is non-sealed
+  // ConstantDesc is sealed
+  
   static Constable loadable(Constable o) {
     return null; // 32 bit frame slot
   }
@@ -86,7 +91,9 @@ public interface Descriptors {
     return s.substring(1,s.length()-1).replace('/','.');
   }
 
-  record MemberRef(ClassDesc owner, NameAndType member) implements Constable {
+  // TODO: put a tag value here
+  
+  record MemberRef(byte tag, ClassDesc owner, NameAndType member) implements Constable {
     @Override
     public Optional<? extends ConstantDesc> describeConstable() {
       return Optional.of(member.type);
@@ -101,7 +108,7 @@ public interface Descriptors {
       var c = classDesc(a[0]);
       var n = name(a[1]);
       var t = classDesc(a.length > 2 ? a[2] : fieldOf(owner(a[0]),n).getType() );
-      return new MemberRef(c,new NameAndType(n,t));
+      return new MemberRef(CONSTANT_Fieldref,c,new NameAndType(n,t));
     }
     throw new IllegalArgumentException("invalid field specification");
   }
@@ -136,7 +143,7 @@ public interface Descriptors {
         }
         t = MethodTypeDesc.of(r,p);
       }
-      return new MemberRef(c,new NameAndType(n,t));
+      return new MemberRef(CONSTANT_Methodref,c,new NameAndType(n,t));
     }
     throw new IllegalArgumentException("invalid method specification");
   }
@@ -149,7 +156,7 @@ public interface Descriptors {
   }
 
   static Constable invocable(Constable...o) { // method or constructor
-    return null; // TODO:
+    return null; // TODO: // CONSTANT_InterfaceMethodref
   }
 
   static Constable interfaceMethod(Constable...o) { // method or interfaceMethod

@@ -3,7 +3,7 @@ package bc.encoder.cp;
 import static bc.spec.JVMS.*;
 import static bc.spec.UTF.*;
 
-class Constant extends Pool {
+class ConstantInfo extends Pool {
 
   // CONSTANT_Utf8_info {
   //   u1 tag = 1;

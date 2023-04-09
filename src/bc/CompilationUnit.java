@@ -5,15 +5,15 @@ import static bc.spec.JVMS.*;
 
 public interface CompilationUnit {
 
-  ClassInfo Class (Object... type); // this_class [, super_class]
+  ClassInfo Class (Constable... type); // this_class [, super_class]
 
   interface ClassInfo {
 
     ClassInfo flags (ACC... flags);
-    ClassInfo interfaces (String... types);
-
-    FieldInfo Field (String name, String descriptor);
-    MethodInfo Method (String name, String descriptor);
+    ClassInfo interfaces (Constable... types);
+    
+    FieldInfo Field (String name, Constable descriptor);
+    MethodInfo Method (String name, Constable... descriptor);
 
     RecordInfo  Record ();
 
@@ -39,7 +39,7 @@ public interface CompilationUnit {
 
   interface FieldInfo {
 
-    FieldInfo flags (ACC... flags);
+    FieldInfo flags (ACC...flags);
 
     FieldInfo  ConstantValue ();
     FieldInfo  Synthetic ();

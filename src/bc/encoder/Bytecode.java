@@ -1,5 +1,7 @@
 package bc.encoder;
 
+import java.lang.constant.Constable;
+
 import bc.CompilationUnit;
 
 public class Bytecode implements CompilationUnit {
@@ -14,7 +16,7 @@ public class Bytecode implements CompilationUnit {
   }
 
   @Override
-  public ClassInfo Class(Object... type) {
+  public ClassInfo Class(Constable... type) {
     return new bc.encoder.ClassInfo(type);
   }
 

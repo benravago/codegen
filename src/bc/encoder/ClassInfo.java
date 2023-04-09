@@ -3,8 +3,6 @@ package bc.encoder;
 import bc.CompilationUnit;
 import bc.encoder.cp.ConstantPool;
 import bc.encoder.fn.Access;
-
-import static bc.encoder.fn.Descriptors.*;
 import static bc.encoder.fn.Macros.*;
 import static bc.spec.JVMS.*;
 
@@ -27,12 +25,12 @@ class ClassInfo implements CompilationUnit.ClassInfo {
 
   // attributes_count, attributes[]
 
-  ClassInfo(Object... type) {
+  ClassInfo(Constable... type) {
     this_class = CONSTANT.Class_info(arg(type,0));
     super_class = CONSTANT.Class_info(arg(type,1,Object.class));
     /*
     Method("<init>")
-     .flags(PUBLIC)
+     .flags(SUPER)
      .Code().code()
        .aload_0()
        .invokespecial(d(Object.class,"<init>"))
@@ -46,9 +44,9 @@ class ClassInfo implements CompilationUnit.ClassInfo {
     return this;
   }
 
-    @Override public ClassInfo interfaces(String... type) { return this; }
-    @Override public FieldInfo Field(String name, String descriptor) { return null; }
-    @Override public MethodInfo Method(String name, String descriptor) { return null; }
+    @Override public ClassInfo interfaces(Constable... type) { return this; }
+    @Override public FieldInfo Field(String name, Constable descriptor) { return null; }
+    @Override public MethodInfo Method(String name, Constable... descriptor) { return null; }
     @Override public RecordInfo Record() { return null; }
     @Override public ClassInfo InnerClasses() { return this; }
     @Override public ClassInfo EnclosingMethod() { return this; }

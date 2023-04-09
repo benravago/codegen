@@ -5,7 +5,7 @@ import java.util.Arrays;
 import bc.CompilationUnit.Code;
 import static bc.spec.JVMS.*;
 
-abstract class Operation extends Instruction implements Code {
+abstract class Forms /* extends Format */  implements Code {
 
   byte[] buffer = new byte[256];
   int position = 0;
@@ -16,14 +16,37 @@ abstract class Operation extends Instruction implements Code {
     }
   }
 
-  @Override
+  //  i_             (byte o);                               //  -
+
+  //  i_1b           (byte o, byte b);                       //  (1)  byte
+  //  i_2s           (byte o, short s);                      //  (2)  short
+
+  //  i_1c           (byte o, byte c);                       //  (1)  cp.index
+  //  i_2c           (byte o, short c);                      //  (2)  cp.index
+  //  i_2c_1d        (byte o, short c, byte d);              //  (2,1)  cp.index, const
+
+  //  i_1v           (byte o, byte v);                       //  (1)  lv.index
+  //  i_1v_1d        (byte o, byte v, byte d);               //  (1,1)  lv.index, const
+
+  //  i_1t           (byte o, byte t);                       //  (1)  atype
+
+  //  i_2j           (byte o, short j);                      //  (2)  branch
+  //  i_4j           (byte o, int j);                        //  (4)  branch
+
+  //  i_2c_1d_0      (byte o, short c, byte d);              //  (2,1,0)  cp.index, count, 0
+  //  i_2c_0_0       (byte o, short c);                      //  (2,0,0)  cp.index, 0, 0
+
+  //  i_p_4d_4l_4h_x (byte o, int d, int l, int h, int...j); //  (0-3,4,4,4,...)  padding, default, low, high, jump offsets
+  //  i_p_4d_4n_x    (byte o, int d, int n, int...mo);       //  (0-3,4,4,...)  padding, default, npairs, match/offset pairs
+
+  //  i_1w_2v_d      (byte o, byte w, short v, short...n);   //  (1,2 | 1,2,2)  opcode, lv.index | iinc, lv.index, count
+
   Code i_(byte o) {
     ensure(1);
     buffer[position++] = o;
     return this;
   }
 
-  @Override
   Code i_1b(byte o, byte b) {
     ensure(2);
     buffer[position] = o;
@@ -32,7 +55,6 @@ abstract class Operation extends Instruction implements Code {
     return this;
   }
 
-  @Override
   Code i_2s(byte o, short s) {
     ensure(3);
     buffer[position] = o;
@@ -41,7 +63,6 @@ abstract class Operation extends Instruction implements Code {
     return this;
   }
 
-  @Override
   Code i_1c(byte o, byte c) {
     ensure(2);
     buffer[position] = o;
@@ -50,7 +71,6 @@ abstract class Operation extends Instruction implements Code {
     return this;
   }
 
-  @Override
   Code i_2c(byte o, short c) {
     ensure(3);
     buffer[position] = o;
@@ -59,7 +79,6 @@ abstract class Operation extends Instruction implements Code {
     return this;
   }
 
-  @Override
   Code i_2c_1d(byte o, short c, byte d) {
     ensure(4);
     buffer[position] = o;
@@ -69,7 +88,6 @@ abstract class Operation extends Instruction implements Code {
     return this;
   }
 
-  @Override
   Code i_1v(byte o, byte v) {
     ensure(2);
     buffer[position] = o;
@@ -78,7 +96,6 @@ abstract class Operation extends Instruction implements Code {
     return this;
   }
 
-  @Override
   Code i_1v_1d(byte o, byte v, byte d) {
     ensure(3);
     buffer[position] = o;
@@ -88,7 +105,6 @@ abstract class Operation extends Instruction implements Code {
     return this;
   }
 
-  @Override
   Code i_1t(byte o, byte t) {
     ensure(2);
     buffer[position] = o;
@@ -97,7 +113,6 @@ abstract class Operation extends Instruction implements Code {
     return this;
   }
 
-  @Override
   Code i_2j(byte o, short j) {
     ensure(3);
     buffer[position] = o;
@@ -106,7 +121,6 @@ abstract class Operation extends Instruction implements Code {
     return this;
   }
 
-  @Override
   Code i_4j(byte o, int j) {
     ensure(5);
     buffer[position] = o;
@@ -116,7 +130,6 @@ abstract class Operation extends Instruction implements Code {
     return this;
   }
 
-  @Override
   Code i_2c_1d_0(byte o, short c, byte d) {
     ensure(5);
     buffer[position] = o;
@@ -127,7 +140,6 @@ abstract class Operation extends Instruction implements Code {
     return this;
   }
 
-  @Override
   Code i_2c_0_0(byte o, short c) {
     ensure(5);
     buffer[position] = o;
@@ -151,7 +163,6 @@ abstract class Operation extends Instruction implements Code {
     buffer[position++] = (byte)(i>>>8); buffer[position++] = (byte)(i);
   }
 
-  @Override
   Code i_p_4d_4l_4h_x(byte o, int d, int l, int h, int...a) {
     assert a.length > 0 : "no jump offsets";
     assert h - l == a.length : "invalid range";
@@ -162,7 +173,6 @@ abstract class Operation extends Instruction implements Code {
     return this;
   }
 
-  @Override
   Code i_p_4d_4n_x(byte o, int d, int n, int...a) {
     assert a.length > 0 : "no match/offset pairs";
     assert n * 2 == a.length : "wrong pair count";
@@ -173,7 +183,6 @@ abstract class Operation extends Instruction implements Code {
     return this;
   }
 
-  @Override
   Code i_1w_2v_d(byte o, byte w, short v, short...d) {
     if (w == OP_iinc) {
       assert d.length == 1 : "invalid count";
